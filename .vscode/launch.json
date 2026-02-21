@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Vite + Chrome (Clean 5173)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/royal-lens-studios-main",
+      "preLaunchTask": "vite: clean start (5173)"
+    },
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Chrome on Existing Vite (5173)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/royal-lens-studios-main"
+    }
+  ]
+}
