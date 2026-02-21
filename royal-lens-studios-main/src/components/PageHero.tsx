@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import LazyVideo from "@/components/LazyVideo";
 
 interface PageHeroProps {
   title: string;
@@ -8,11 +9,19 @@ interface PageHeroProps {
 }
 
 const PageHero = ({ title, subtitle, image, video }: PageHeroProps) => (
-  <section className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden">
+  <section className="relative h-[42svh] md:h-[50vh] pt-16 md:pt-20 flex items-center justify-center overflow-hidden">
     {video ? (
-      <video src={video} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
+      <LazyVideo
+        src={video}
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/placeholder.svg"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
     ) : (
-      <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={image} alt="" loading="eager" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover" />
     )}
     <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
     <motion.div

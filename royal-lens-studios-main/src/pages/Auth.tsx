@@ -59,6 +59,9 @@ const Auth = () => {
         <img
           src="https://images.unsplash.com/photo-1519741497674-611481863552?w=1920&q=80"
           alt=""
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" />

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Camera, ChevronRight, Sparkles, Heart, Shirt, Briefcase, PartyPopper, Baby, MessageCircle } from "lucide-react";
 import heroVideo from "@/assets/hero-video.mp4";
 import { Button } from "@/components/ui/button";
+import LazyVideo from "@/components/LazyVideo";
 import SectionHeading from "@/components/SectionHeading";
 import StatsRow from "@/components/StatsRow";
 import ProcessTimeline from "@/components/ProcessTimeline";
@@ -48,21 +49,21 @@ const Index = () => {
   return (
     <main>
       {/* ═══ HERO ═══ */}
-      <section className="relative h-screen overflow-hidden">
+      <section className="relative min-h-[100svh] overflow-hidden">
         <div className="absolute inset-0">
-          <video
+          <LazyVideo
+            src={heroVideo}
             autoPlay
             muted
             loop
             playsInline
+            poster="/placeholder.svg"
             className="w-full h-full object-cover"
-          >
-            <source src={heroVideo} type="video/mp4" />
-          </video>
+          />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-[100svh] text-center px-4 pt-20 pb-10">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -90,11 +91,11 @@ const Index = () => {
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-gold text-background hover:bg-gold-light font-semibold text-base px-8 shadow-lg shadow-gold/30 hover:scale-105 transition-transform">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
+              <Button asChild size="lg" className="w-full sm:w-auto bg-gold text-background hover:bg-gold-light font-semibold text-base px-8 shadow-lg shadow-gold/30 hover:scale-105 transition-transform">
                 <Link to="/booking">Book a Session <ChevronRight className="w-4 h-4 ml-1" /></Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-gold/40 text-gold bg-white/5 hover:bg-gold/10 hover:shadow-md hover:shadow-gold/20 font-semibold text-base px-8">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-gold/40 text-gold bg-white/5 hover:bg-gold/10 hover:shadow-md hover:shadow-gold/20 font-semibold text-base px-8">
                 <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="w-4 h-4 mr-2" /> Chat on WhatsApp
                 </a>
@@ -115,7 +116,7 @@ const Index = () => {
       <section className="py-16 md:py-20 bg-card/50">
         <div className="container mx-auto px-4">
           <SectionHeading title="Our Services" subtitle="Premium photography tailored to your vision." crown />
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             {serviceSnap.map((s, i) => (
               <motion.div
                 key={s.title}
@@ -145,7 +146,7 @@ const Index = () => {
       <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
           <SectionHeading title="Our Work" subtitle="A curated showcase of our finest captures." />
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {portfolioHighlights.map((p, i) => (
               <motion.div
                 key={p.title}
@@ -157,7 +158,13 @@ const Index = () => {
                   i === 0 ? "md:row-span-2 md:aspect-auto aspect-square" : "aspect-[4/3]"
                 }`}
               >
-                <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img
+                  src={p.image}
+                  alt={p.title}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-4">
                   <span className="text-xs text-gold font-semibold uppercase tracking-wider">{p.cat}</span>
                   <h3 className="font-serif text-lg font-bold">{p.title}</h3>

@@ -8,16 +8,16 @@ const Footer = () => (
   <footer className="border-t border-border bg-card">
     {/* Booking CTA Strip */}
     <div className="border-b border-border">
-      <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>
+      <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row items-center md:items-start justify-between gap-4">
+        <div className="text-center md:text-left">
           <h3 className="font-serif text-2xl font-bold">Ready to Create <span className="text-gold">Magic</span>?</h3>
           <p className="text-muted-foreground text-sm mt-1">Book your session today or chat with us on WhatsApp.</p>
         </div>
-        <div className="flex gap-3">
-          <Button asChild className="bg-gold text-background hover:bg-gold-light font-semibold">
+        <div className="flex w-full md:w-auto flex-col sm:flex-row gap-3">
+          <Button asChild className="w-full sm:w-auto bg-gold text-background hover:bg-gold-light font-semibold">
             <Link to="/booking">Book a Session <ChevronRight className="w-4 h-4 ml-1" /></Link>
           </Button>
-          <Button asChild variant="outline" className="border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366]/10">
+          <Button asChild variant="outline" className="w-full sm:w-auto border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366]/10">
             <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
             </a>

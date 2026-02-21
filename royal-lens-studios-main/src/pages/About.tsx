@@ -76,7 +76,13 @@ const About = () => (
               transition={{ delay: i * 0.1 }}
               className={`rounded-lg overflow-hidden ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}
             >
-              <img src={img} alt="Studio" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+              <img
+                src={img}
+                alt="Studio"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+              />
             </motion.div>
           ))}
         </div>

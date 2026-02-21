@@ -22,4 +22,15 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["@tanstack/react-query"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "motion-vendor": ["framer-motion"],
+          "supabase-vendor": ["@supabase/supabase-js", "@tanstack/react-query"],
+        },
+      },
+    },
+  },
 }));
