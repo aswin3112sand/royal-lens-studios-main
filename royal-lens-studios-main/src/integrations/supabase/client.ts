@@ -5,40 +5,53 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-const validateSupabaseConfig = () => {
+const FALLBACK_SUPABASE_URL = "https://ycytlbuyhmacbftufuad.supabase.co";
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljeXRsYnV5aG1hY2JmdHVmdWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODI2MzAsImV4cCI6MjA4NzE1ODYzMH0.SYnf76j_SJiZTiqFruFOBhBTE4lYu2a0TIfAPU5M9DY";
+
+const resolveSupabaseConfig = () => {
+  let url = SUPABASE_URL?.trim();
+  let key = SUPABASE_PUBLISHABLE_KEY?.trim();
   const missing: string[] = [];
 
-  if (!SUPABASE_URL || !SUPABASE_URL.trim()) {
-    missing.push("VITE_SUPABASE_URL");
-  }
-  if (!SUPABASE_PUBLISHABLE_KEY || !SUPABASE_PUBLISHABLE_KEY.trim()) {
-    missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
-  }
+  if (!url) missing.push("VITE_SUPABASE_URL");
+  if (!key) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
 
   if (missing.length > 0) {
-    throw new Error(
-      `[DEPLOY_CONFIG] Missing required environment variables: ${missing.join(", ")}`
+    console.warn(
+      `[DEPLOY_CONFIG] Missing env vars: ${missing.join(", ")}. Falling back to default Supabase config.`
     );
   }
+
+  url = url || FALLBACK_SUPABASE_URL;
+  key = key || FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   try {
-    new URL(SUPABASE_URL);
+    new URL(url);
   } catch {
-    throw new Error(
-      "[DEPLOY_CONFIG] Invalid VITE_SUPABASE_URL. Provide a full URL, for example https://<project>.supabase.co"
+    console.warn(
+      "[DEPLOY_CONFIG] Invalid VITE_SUPABASE_URL. Falling back to default Supabase URL."
     );
+    url = FALLBACK_SUPABASE_URL;
   }
+
+  return { url, key };
 };
 
-validateSupabaseConfig();
+const { url: RESOLVED_SUPABASE_URL, key: RESOLVED_SUPABASE_PUBLISHABLE_KEY } =
+  resolveSupabaseConfig();
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+export const supabase = createClient<Database>(
+  RESOLVED_SUPABASE_URL,
+  RESOLVED_SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      storage: localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  },
+);
