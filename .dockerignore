@@ -1,0 +1,12 @@
+.git
+.vscode
+
+**/node_modules
+**/dist
+**/coverage
+**/.DS_Store
+**/.devserver.log
+**/.devserver.err.log
+**/npm-debug.log
+
+royal-lens-studios-main/.lovable

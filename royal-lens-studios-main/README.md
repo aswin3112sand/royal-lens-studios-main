@@ -4,6 +4,26 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+## Docker deployment
+
+Run these commands from the repo root (`royal-lens-studios-main`), not from inside the nested app folder.
+
+```sh
+# Build the production image
+docker build -t royal-lens-studios .
+
+# Run the container
+docker run --rm -p 8080:8080 --name royal-lens-studios royal-lens-studios
+```
+
+Then open: `http://localhost:8080`
+
+You can also use Docker Compose:
+
+```sh
+docker compose up --build -d
+```
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
