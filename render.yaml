@@ -8,13 +8,17 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SPRING_DATASOURCE_URL
-        sync: false
+        value: jdbc:h2:mem:photographer;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
       - key: SPRING_DATASOURCE_USERNAME
-        sync: false
+        value: sa
       - key: SPRING_DATASOURCE_PASSWORD
-        sync: false
+        value: ""
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.h2.Driver
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: validate
+        value: update
+      - key: SPRING_FLYWAY_ENABLED
+        value: false
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRATION_MS
