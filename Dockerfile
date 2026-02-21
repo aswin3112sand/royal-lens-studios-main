@@ -1,31 +1,30 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS builder
-WORKDIR /app
+FROM node:20-alpine AS frontend-build
+WORKDIR /frontend
 
-# Install dependencies first for better layer caching.
 COPY royal-lens-studios-main/package.json royal-lens-studios-main/package-lock.json ./
 RUN npm ci
 
 COPY royal-lens-studios-main/ ./
-
-# Optional build-time overrides for Vite env values.
-ARG VITE_SUPABASE_PROJECT_ID
-ARG VITE_SUPABASE_PUBLISHABLE_KEY
-ARG VITE_SUPABASE_URL
-ENV VITE_SUPABASE_PROJECT_ID=$VITE_SUPABASE_PROJECT_ID
-ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM maven:3.9.9-eclipse-temurin-17 AS backend-build
 WORKDIR /app
 
-RUN npm install -g serve@14.2.4
-COPY --from=builder /app/dist ./dist
+COPY backend/pom.xml backend/pom.xml
+RUN mvn -f backend/pom.xml -DskipTests dependency:go-offline
+
+COPY backend/ backend/
+COPY --from=frontend-build /frontend/dist backend/src/main/resources/static
+RUN mvn -f backend/pom.xml -DskipTests package
+
+FROM eclipse-temurin:17-jre-alpine AS runner
+WORKDIR /app
+
+COPY --from=backend-build /app/backend/target/photographer-backend.jar app.jar
 
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["sh", "-c", "serve -s dist -l ${PORT}"]
+CMD ["sh", "-c", "java -Dserver.port=${PORT} -jar app.jar"]

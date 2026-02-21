@@ -1,44 +1,53 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/services/adminApi";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { FolderOpen, Plus, Trash2, Edit } from "lucide-react";
+import { FolderOpen, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Project } from "@/lib/services/types";
 
 const categories = ["wedding", "portrait", "fashion", "corporate", "baby", "event", "product"];
 
 const AdminProjects = () => {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ title: "", slug: "", category: "wedding", description: "", story: "", location: "" });
   const { toast } = useToast();
 
-  useEffect(() => { fetchProjects(); }, []);
+  useEffect(() => { void fetchProjects(); }, []);
 
   const fetchProjects = async () => {
-    const { data } = await supabase.from("projects" as any).select("*").order("created_at", { ascending: false });
-    setProjects((data as any[]) || []);
-  };
-
-  const addProject = async () => {
-    const slug = form.slug || form.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-    const { error } = await supabase.from("projects" as any).insert({ ...form, slug } as any);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else {
-      toast({ title: "Project Added" });
-      setShowAdd(false);
-      setForm({ title: "", slug: "", category: "wedding", description: "", story: "", location: "" });
-      fetchProjects();
+    try {
+      const data = await adminApi.getProjects();
+      setProjects(data);
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to load projects."), variant: "destructive" });
     }
   };
 
-  const deleteProject = async (id: string) => {
-    const { error } = await supabase.from("projects" as any).delete().eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else fetchProjects();
+  const addProject = async () => {
+    try {
+      await adminApi.createProject(form);
+      toast({ title: "Project Added" });
+      setShowAdd(false);
+      setForm({ title: "", slug: "", category: "wedding", description: "", story: "", location: "" });
+      await fetchProjects();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to add project."), variant: "destructive" });
+    }
+  };
+
+  const deleteProject = async (id: number) => {
+    try {
+      await adminApi.deleteProject(id);
+      await fetchProjects();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to delete project."), variant: "destructive" });
+    }
   };
 
   return (
@@ -94,7 +103,7 @@ const AdminProjects = () => {
                       <p className="text-xs text-muted-foreground">/{p.slug}</p>
                     </td>
                     <td className="px-4 py-3 text-sm capitalize">{p.category}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{p.location || "—"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{p.location || "-"}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${p.published ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"}`}>
                         {p.published ? "Published" : "Draft"}

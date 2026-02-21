@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CalendarIcon, Phone, Camera, Clock, CheckCircle } from "lucide-react";
@@ -9,73 +9,92 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import SectionHeading from "@/components/SectionHeading";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { bookingApi } from "@/lib/services/bookingApi";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Booking as BookingItem } from "@/lib/services/types";
 
 const shootTypes = ["Wedding Photography", "Fashion Shoot", "Corporate Portrait", "Event Coverage", "Baby Shoot"];
 
 const Booking = () => {
-  const [user, setUser] = useState<any>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState<Date>();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", shoot_type: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", shootType: "" });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAdminAuth();
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      const data = await bookingApi.getMyBookings();
+      setBookings(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: extractApiErrorMessage(error, "Unable to load your bookings."),
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (!session) navigate("/auth");
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) navigate("/auth");
-      else {
-        setUser(session.user);
-        setForm((f) => ({ ...f, name: session.user.user_metadata?.full_name || "", email: session.user.email || "" }));
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
 
-  useEffect(() => {
-    if (user) fetchBookings();
-  }, [user]);
+    setForm((f) => ({
+      ...f,
+      name: user.fullName || f.name,
+      email: user.email || f.email,
+    }));
 
-  const fetchBookings = async () => {
-    const { data } = await supabase
-      .from("bookings")
-      .select("*")
-      .order("preferred_date", { ascending: false });
-    if (data) setBookings(data);
-  };
+    void fetchBookings();
+  }, [authLoading, user, navigate, fetchBookings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date || !form.shoot_type) {
+    if (!date || !form.shootType) {
       toast({ title: "Missing Fields", description: "Please select a date and shoot type.", variant: "destructive" });
       return;
     }
+
     setLoading(true);
-    const { error } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      preferred_date: format(date, "yyyy-MM-dd"),
-      shoot_type: form.shoot_type,
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Booking Failed", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await bookingApi.createBooking({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        shootType: form.shootType,
+        preferredDate: format(date, "yyyy-MM-dd"),
+      });
+
       toast({ title: "Booking Confirmed!", description: "We'll be in touch shortly to finalize details." });
-      setForm((f) => ({ ...f, phone: "", shoot_type: "" }));
+      setForm((f) => ({ ...f, phone: "", shootType: "" }));
       setDate(undefined);
-      fetchBookings();
+      await fetchBookings();
+    } catch (error) {
+      toast({
+        title: "Booking Failed",
+        description: extractApiErrorMessage(error, "Unable to create booking right now."),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <main className="pt-24 pb-20">
+        <div className="container mx-auto px-4 text-center text-muted-foreground">Loading...</div>
+      </main>
+    );
+  }
 
   if (!user) return null;
 
@@ -124,7 +143,7 @@ const Booking = () => {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Shoot Type</label>
-              <Select value={form.shoot_type} onValueChange={(v) => setForm({ ...form, shoot_type: v })}>
+              <Select value={form.shootType} onValueChange={(v) => setForm({ ...form, shootType: v })}>
                 <SelectTrigger className="bg-background/50">
                   <SelectValue placeholder="Select a shoot type" />
                 </SelectTrigger>
@@ -154,9 +173,9 @@ const Booking = () => {
                   <div key={b.id} className="glass rounded-lg p-5 flex items-start gap-4">
                     <CheckCircle className="w-5 h-5 text-gold mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-semibold">{b.shoot_type}</p>
-                      <p className="text-sm text-muted-foreground">{b.preferred_date ? format(new Date(b.preferred_date), "PPP") : "No date"}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Booked: {format(new Date(b.created_at), "PPP")}</p>
+                      <p className="font-semibold">{b.shootType}</p>
+                      <p className="text-sm text-muted-foreground">{b.preferredDate ? format(new Date(b.preferredDate), "PPP") : "No date"}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Booked: {format(new Date(b.createdAt), "PPP")}</p>
                     </div>
                   </div>
                 ))}

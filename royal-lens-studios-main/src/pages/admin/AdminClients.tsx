@@ -1,34 +1,41 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/services/adminApi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { UserCheck, Search, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Client } from "@/lib/services/types";
 
 const AdminClients = () => {
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", notes: "" });
   const { toast } = useToast();
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { void fetchClients(); }, []);
 
   const fetchClients = async () => {
-    const { data } = await supabase.from("clients" as any).select("*").order("created_at", { ascending: false });
-    setClients((data as any[]) || []);
+    try {
+      const data = await adminApi.getClients();
+      setClients(data);
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to load clients."), variant: "destructive" });
+    }
   };
 
   const addClient = async () => {
-    const { error } = await supabase.from("clients" as any).insert(form as any);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else {
+    try {
+      await adminApi.createClient(form);
       toast({ title: "Client Added" });
       setShowAdd(false);
       setForm({ name: "", email: "", phone: "", notes: "" });
-      fetchClients();
+      await fetchClients();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to add client."), variant: "destructive" });
     }
   };
 
@@ -77,12 +84,12 @@ const AdminClients = () => {
               <p className="text-sm text-muted-foreground">{c.phone || "No phone"}</p>
               {c.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {c.tags.map((tag: string) => (
+                  {c.tags.map((tag) => (
                     <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold">{tag}</span>
                   ))}
                 </div>
               )}
-              <p className="text-xs text-muted-foreground mt-2">{c.total_bookings} bookings</p>
+              <p className="text-xs text-muted-foreground mt-2">{c.totalBookings} bookings</p>
             </div>
           ))
         )}

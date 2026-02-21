@@ -1,0 +1,11 @@
+package com.photographer.common;
+
+public record PageRequestDto(
+    int page,
+    int size
+) {
+  public PageRequestDto {
+    if (page < 0) page = 0;
+    if (size <= 0 || size > 100) size = 20;
+  }
+}

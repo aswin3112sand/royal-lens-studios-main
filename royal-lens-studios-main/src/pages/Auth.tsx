@@ -5,7 +5,8 @@ import { Crown, Mail, Lock, User, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { authApi } from "@/lib/services/authApi";
+import { extractApiErrorMessage } from "@/lib/api";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -18,8 +19,10 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/booking");
+    authApi.me().then((user) => {
+      if (user) navigate("/booking");
+    }).catch(() => {
+      // Ignore unauthenticated boot state for auth page.
     });
   }, [navigate]);
 
@@ -27,27 +30,21 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ title: "Login Failed", description: error.message, variant: "destructive" });
+    try {
+      if (isLogin) {
+        await authApi.login({ email, password });
       } else {
-        navigate("/booking");
+        await authApi.register({ email, password, fullName: name });
+        toast({ title: "Account Created!", description: "Welcome to Photographer." });
       }
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: name },
-          emailRedirectTo: window.location.origin,
-        },
+      window.dispatchEvent(new Event("auth-changed"));
+      navigate("/booking");
+    } catch (error) {
+      toast({
+        title: isLogin ? "Login Failed" : "Sign Up Failed",
+        description: extractApiErrorMessage(error, "Please check your details and try again."),
+        variant: "destructive",
       });
-      if (error) {
-        toast({ title: "Sign Up Failed", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Account Created!", description: "Please check your email to verify your account." });
-      }
     }
     setLoading(false);
   };

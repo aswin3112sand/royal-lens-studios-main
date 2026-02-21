@@ -1,38 +1,46 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/services/adminApi";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Save } from "lucide-react";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { StudioSettings } from "@/lib/services/types";
 
 const AdminSettings = () => {
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<StudioSettings | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => { fetchSettings(); }, []);
+  useEffect(() => { void fetchSettings(); }, []);
 
   const fetchSettings = async () => {
-    const { data } = await supabase.from("studio_settings" as any).select("*").limit(1).single();
-    if (data) setSettings(data);
+    try {
+      const data = await adminApi.getSettings();
+      setSettings(data);
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Unable to load settings."), variant: "destructive" });
+    }
   };
 
   const saveSettings = async () => {
     if (!settings) return;
     setLoading(true);
-    const { error } = await supabase
-      .from("studio_settings" as any)
-      .update({
-        studio_name: settings.studio_name,
-        whatsapp_number: settings.whatsapp_number,
+    try {
+      const updated = await adminApi.updateSettings({
+        studioName: settings.studioName,
+        whatsappNumber: settings.whatsappNumber,
         phone: settings.phone,
         email: settings.email,
         address: settings.address,
-      } as any)
-      .eq("id", settings.id);
-    setLoading(false);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else toast({ title: "Settings Saved!" });
+      });
+      setSettings(updated);
+      toast({ title: "Settings Saved!" });
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to save settings."), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!settings) return <div className="text-muted-foreground">Loading settings...</div>;
@@ -46,11 +54,11 @@ const AdminSettings = () => {
       <div className="glass rounded-xl p-6 md:p-8 max-w-2xl space-y-5">
         <div>
           <label className="text-sm font-medium mb-1 block">Studio Name</label>
-          <Input value={settings.studio_name || ""} onChange={(e) => setSettings({ ...settings, studio_name: e.target.value })} className="bg-background/50" />
+          <Input value={settings.studioName || ""} onChange={(e) => setSettings({ ...settings, studioName: e.target.value })} className="bg-background/50" />
         </div>
         <div>
           <label className="text-sm font-medium mb-1 block">WhatsApp Number</label>
-          <Input value={settings.whatsapp_number || ""} onChange={(e) => setSettings({ ...settings, whatsapp_number: e.target.value })} className="bg-background/50" placeholder="+91..." />
+          <Input value={settings.whatsappNumber || ""} onChange={(e) => setSettings({ ...settings, whatsappNumber: e.target.value })} className="bg-background/50" placeholder="+91..." />
         </div>
         <div>
           <label className="text-sm font-medium mb-1 block">Phone</label>

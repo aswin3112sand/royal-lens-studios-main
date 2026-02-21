@@ -1,93 +1,37 @@
-# Render Deployment and Blank Screen Fix (Vite + React)
+# Render Deploy Guide (Spring Boot + React, Single Docker Service)
 
-This project is:
-- Frontend: Vite + React
-- Backend integration: Supabase client SDK in frontend (`src/integrations/supabase/client.ts`)
-- Startup guard: top-level error boundary in `src/components/StartupErrorBoundary.tsx`
+## Service settings
+- Type: **Web Service**
+- Environment: **Docker**
+- Dockerfile: `./Dockerfile`
+- Health Check Path: `/actuator/health`
 
-## Required Render static site settings
+## Required env vars
 
-Use these exact settings in Render:
+```env
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_URL=jdbc:mysql://<host>:3306/photographer?sslMode=REQUIRED&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=<username>
+SPRING_DATASOURCE_PASSWORD=<password>
+SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+JWT_SECRET=<64+ char secret>
+JWT_EXPIRATION_MS=86400000
+COOKIE_SECURE=true
+COOKIE_SAMESITE=Lax
+APP_CORS_ALLOWED_ORIGINS=https://<your-render-domain>
+```
 
-- Service Type: `Static Site`
-- Root Directory: `royal-lens-studios-main`
-- Build Command: `npm run build`
-- Publish Directory: `dist`
+`VITE_API_BASE_URL` is optional in production because frontend and API are same origin inside the same Spring app.
 
-If you deploy using Render Blueprint, this repo already includes `render.yaml` at the repo root with these values.
+## Blank screen checklist
+1. Open browser DevTools -> Console + Network.
+2. Verify `/index.html` is 200.
+3. Verify `/assets/*.js` files are 200.
+4. Verify `/api/public/packages` and `/api/public/testimonials` are 200.
+5. Check backend logs for DB connection or Flyway failures.
 
-## Required environment variables
-
-Add these in Render -> Service -> Environment:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_PROJECT_ID`
-
-Use the same values from local `.env`.  
-Template: `.env.render.example`
-
-Important: Vite reads `VITE_*` vars at build time, so redeploy after changing them.
-
-If env config is missing/invalid, the app now shows a clear startup error screen instead of a blank page.
-
-## React Router rewrite rule
-
-Because the app uses `BrowserRouter`, add SPA rewrite:
-
-- Source: `/*`
-- Destination: `/index.html`
-- Action: `Rewrite`
-
-If using `render.yaml`, this route is already configured.
-
-## Console and Network debug steps
-
-1. Open deployed URL in Chrome.
-2. Open DevTools (`F12`).
-3. In Console, enable `Preserve log`.
-4. In Network, enable `Disable cache`.
-5. Hard refresh (`Ctrl+Shift+R`).
-6. Check:
-- `index.html` returns `200`.
-- `/assets/*.js` returns `200` (no `404`, no HTML MIME mismatch).
-- no runtime startup error about Supabase URL/key.
-
-## Error -> fix mapping
-
-### 1) `404` for `/assets/...js` or CSS
-- Cause: wrong Root Directory / Publish Directory.
-- Fix:
-  - Root Directory = `royal-lens-studios-main`
-  - Build Command = `npm run build`
-  - Publish Directory = `dist`
-
-### 2) `supabaseUrl is required` or undefined key
-- Cause: missing `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`.
-- Fix:
-  - Set env vars in Render.
-  - Trigger a fresh deploy.
-  - If this happens at runtime, startup boundary will show the missing keys directly.
-
-### 3) Blank page on deep links like `/about`
-- Cause: missing SPA rewrite.
-- Fix:
-  - Add rewrite `/* -> /index.html`.
-
-### 4) `Failed to fetch dynamically imported module`
-- Cause: stale browser cache with old chunk map.
-- Fix:
-  - Hard refresh / incognito.
-  - Redeploy once if needed.
-
-### 5) MIME type errors for JS (`text/html`)
-- Cause: static path/rewrite misconfiguration.
-- Fix:
-  - Correct publish directory and SPA rewrite config.
-
-## Quick verification after deploy
-
-1. Open `/` and confirm full app renders.
-2. Open `/services` directly and confirm route renders.
-3. Confirm Network shows all JS chunks as `200`.
-4. Confirm no startup errors in Console.
+## Common error mapping
+- `500` on startup: datasource/JWT env vars missing.
+- `401` everywhere: auth cookie not set or blocked (check `COOKIE_SECURE`, `same-site`).
+- `Failed to fetch`: wrong API base URL in local dev env.
+- React route blank on refresh: ensure backend fallback controller is included (already added).

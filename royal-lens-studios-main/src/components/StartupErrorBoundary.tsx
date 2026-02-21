@@ -10,15 +10,6 @@ interface StartupErrorBoundaryState {
   error: Error | null;
 }
 
-const ENV_KEYS = [
-  "VITE_SUPABASE_URL",
-  "VITE_SUPABASE_PUBLISHABLE_KEY",
-  "VITE_SUPABASE_PROJECT_ID",
-];
-
-const extractMissingKeys = (message: string) =>
-  ENV_KEYS.filter((key) => message.includes(key));
-
 class StartupErrorBoundary extends Component<
   StartupErrorBoundaryProps,
   StartupErrorBoundaryState
@@ -42,8 +33,6 @@ class StartupErrorBoundary extends Component<
     }
 
     const message = this.state.error.message || "Unknown startup error";
-    const missingKeys = extractMissingKeys(message);
-
     return (
       <main className="min-h-screen bg-background text-foreground px-4 py-10">
         <div className="max-w-2xl mx-auto glass rounded-xl p-6 md:p-8 border border-destructive/40">
@@ -60,24 +49,11 @@ class StartupErrorBoundary extends Component<
             <p className="font-semibold">Next steps:</p>
             <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
               <li>Open Render service settings for this app.</li>
-              <li>Set Root Directory to <code>royal-lens-studios-main</code>.</li>
-              <li>Set Build Command to <code>npm run build</code>.</li>
-              <li>Set Publish Directory to <code>dist</code>.</li>
-              <li>Add required Vite env vars and redeploy.</li>
+              <li>Confirm backend env vars (`SPRING_DATASOURCE_*`, `JWT_SECRET`) are set.</li>
+              <li>Confirm frontend env var <code>VITE_API_BASE_URL</code> is valid for local development.</li>
+              <li>Redeploy after updating environment variables.</li>
             </ol>
           </div>
-          {missingKeys.length > 0 && (
-            <div className="mt-4">
-              <p className="font-semibold mb-2">Missing keys:</p>
-              <ul className="list-disc pl-5 text-muted-foreground text-sm">
-                {missingKeys.map((key) => (
-                  <li key={key}>
-                    <code>{key}</code>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </main>
     );

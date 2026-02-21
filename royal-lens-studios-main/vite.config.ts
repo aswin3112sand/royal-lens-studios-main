@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 5173,
     hmr: {
       overlay: false,
     },
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime"],
   },
   optimizeDeps: {
-    include: ["@tanstack/react-query"],
+    include: ["axios", "@tanstack/react-query"],
   },
   build: {
     rollupOptions: {
@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           "react-vendor": ["react", "react-dom", "react-router-dom"],
           "motion-vendor": ["framer-motion"],
-          "supabase-vendor": ["@supabase/supabase-js", "@tanstack/react-query"],
+          "query-vendor": ["@tanstack/react-query", "axios"],
         },
       },
     },

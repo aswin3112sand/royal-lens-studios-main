@@ -1,44 +1,54 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/services/adminApi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Search, Plus, X } from "lucide-react";
+import { Users, Search, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Lead } from "@/lib/services/types";
 
 const leadStatuses = ["new", "contacted", "visit_scheduled", "won", "lost"];
 
 const AdminLeads = () => {
-  const [leads, setLeads] = useState<any[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", phone: "", source: "manual", notes: "" });
   const { toast } = useToast();
 
-  useEffect(() => { fetchLeads(); }, []);
+  useEffect(() => { void fetchLeads(); }, []);
 
   const fetchLeads = async () => {
-    const { data } = await supabase.from("leads" as any).select("*").order("created_at", { ascending: false });
-    setLeads((data as any[]) || []);
-  };
-
-  const addLead = async () => {
-    const { error } = await supabase.from("leads" as any).insert(form as any);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else {
-      toast({ title: "Lead Added" });
-      setShowAdd(false);
-      setForm({ name: "", email: "", phone: "", source: "manual", notes: "" });
-      fetchLeads();
+    try {
+      const data = await adminApi.getLeads();
+      setLeads(data);
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to load leads."), variant: "destructive" });
     }
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("leads" as any).update({ status } as any).eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else fetchLeads();
+  const addLead = async () => {
+    try {
+      await adminApi.createLead(form);
+      toast({ title: "Lead Added" });
+      setShowAdd(false);
+      setForm({ name: "", email: "", phone: "", source: "manual", notes: "" });
+      await fetchLeads();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to add lead."), variant: "destructive" });
+    }
+  };
+
+  const updateStatus = async (id: number, status: string) => {
+    try {
+      await adminApi.updateLeadStatus(id, status);
+      await fetchLeads();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to update lead status."), variant: "destructive" });
+    }
   };
 
   const filtered = leads.filter((l) =>
@@ -95,7 +105,7 @@ const AdminLeads = () => {
                   <tr key={l.id} className="border-b border-border/50 hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3 font-medium text-sm">{l.name}</td>
                     <td className="px-4 py-3">
-                      <p className="text-sm">{l.email || "—"}</p>
+                      <p className="text-sm">{l.email || "-"}</p>
                       <p className="text-xs text-muted-foreground">{l.phone || ""}</p>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{l.source}</td>
@@ -111,7 +121,7 @@ const AdminLeads = () => {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground max-w-[200px] truncate">{l.notes || "—"}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground max-w-[200px] truncate">{l.notes || "-"}</td>
                   </tr>
                 ))
               )}

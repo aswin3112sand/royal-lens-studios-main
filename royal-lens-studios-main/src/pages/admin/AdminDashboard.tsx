@@ -1,38 +1,34 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Users, DollarSign, Clock, TrendingUp, UserPlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { CalendarDays, Users, Clock, TrendingUp, UserPlus } from "lucide-react";
+import { adminApi } from "@/lib/services/adminApi";
+import { useToast } from "@/hooks/use-toast";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Booking, DashboardStats, Lead } from "@/lib/services/types";
 
 const AdminDashboard = () => {
-  const [stats, setStats] = useState({ bookings: 0, leads: 0, clients: 0, todayBookings: 0 });
-  const [recentBookings, setRecentBookings] = useState<any[]>([]);
-  const [recentLeads, setRecentLeads] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({ bookings: 0, leads: 0, clients: 0, todayBookings: 0 });
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
+  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const today = format(new Date(), "yyyy-MM-dd");
-
-    const [bookingsRes, leadsRes, clientsRes, todayRes, recentBookRes, recentLeadRes] = await Promise.all([
-      supabase.from("bookings").select("id", { count: "exact", head: true }),
-      supabase.from("leads" as any).select("id", { count: "exact", head: true }),
-      supabase.from("clients" as any).select("id", { count: "exact", head: true }),
-      supabase.from("bookings").select("id", { count: "exact", head: true }).eq("preferred_date", today),
-      supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(5),
-      supabase.from("leads" as any).select("*").order("created_at", { ascending: false }).limit(5),
-    ]);
-
-    setStats({
-      bookings: bookingsRes.count || 0,
-      leads: leadsRes.count || 0,
-      clients: clientsRes.count || 0,
-      todayBookings: todayRes.count || 0,
-    });
-    setRecentBookings((recentBookRes.data as any[]) || []);
-    setRecentLeads((recentLeadRes.data as any[]) || []);
+    try {
+      const data = await adminApi.getDashboard();
+      setStats(data.stats);
+      setRecentBookings(data.recentBookings || []);
+      setRecentLeads(data.recentLeads || []);
+    } catch (error) {
+      toast({
+        title: "Dashboard Error",
+        description: extractApiErrorMessage(error, "Unable to load dashboard data."),
+        variant: "destructive",
+      });
+    }
   };
 
   const statCards = [
@@ -73,14 +69,14 @@ const AdminDashboard = () => {
             <p className="text-muted-foreground text-sm">No bookings yet.</p>
           ) : (
             <div className="space-y-3">
-              {recentBookings.map((b: any) => (
+              {recentBookings.map((b) => (
                 <div key={b.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                   <div>
                     <p className="font-medium text-sm">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">{b.shoot_type}</p>
+                    <p className="text-xs text-muted-foreground">{b.shootType}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gold">{b.preferred_date || "No date"}</p>
+                    <p className="text-xs text-gold">{b.preferredDate || "No date"}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       b.status === "confirmed" ? "bg-green-500/20 text-green-400" :
                       b.status === "completed" ? "bg-blue-500/20 text-blue-400" :
@@ -102,7 +98,7 @@ const AdminDashboard = () => {
             <p className="text-muted-foreground text-sm">No leads yet.</p>
           ) : (
             <div className="space-y-3">
-              {recentLeads.map((l: any) => (
+              {recentLeads.map((l) => (
                 <div key={l.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                   <div>
                     <p className="font-medium text-sm">{l.name}</p>

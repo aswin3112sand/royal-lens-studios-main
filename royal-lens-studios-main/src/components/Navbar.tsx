@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Crown, User, LogOut, Shield, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const WHATSAPP_NUMBER = "919876543210";
@@ -20,10 +19,9 @@ const navLinks = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdminOrStaff } = useAdminAuth();
+  const { user, isAdminOrStaff, logout, loading } = useAdminAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -31,18 +29,8 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     navigate("/");
   };
 
@@ -88,7 +76,7 @@ const Navbar = () => {
           >
             <MessageCircle className="w-5 h-5" />
           </a>
-          {user ? (
+          {loading ? null : user ? (
             <>
               {isAdminOrStaff && (
                 <Button variant="ghost" size="sm" className="text-gold hover:text-gold-light" onClick={() => navigate("/admin")}>
@@ -145,7 +133,7 @@ const Navbar = () => {
               ))}
               <div className="h-px bg-gold/10 my-2" />
               <div className="flex flex-col gap-1">
-                {user ? (
+                {!loading && user ? (
                   <>
                     <Button variant="ghost" size="sm" className="justify-start text-foreground/80" onClick={() => { navigate("/booking"); setMobileOpen(false); }}>
                       <User className="w-4 h-4 mr-1" /> My Bookings
@@ -154,12 +142,12 @@ const Navbar = () => {
                       <LogOut className="w-4 h-4 mr-1" /> Logout
                     </Button>
                   </>
-                ) : (
+                ) : !loading ? (
                   <>
                     <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); setMobileOpen(false); }}>Login</Button>
                     <Button size="sm" className="bg-gold text-background hover:bg-gold-light font-semibold" onClick={() => { navigate("/booking"); setMobileOpen(false); }}>Book Now</Button>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           </motion.div>

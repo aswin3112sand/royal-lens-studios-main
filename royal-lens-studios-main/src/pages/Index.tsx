@@ -10,7 +10,10 @@ import StatsRow from "@/components/StatsRow";
 import ProcessTimeline from "@/components/ProcessTimeline";
 import PackageCard from "@/components/PackageCard";
 import TestimonialCard from "@/components/TestimonialCard";
-import { supabase } from "@/integrations/supabase/client";
+import { publicApi } from "@/lib/services/publicApi";
+import { extractApiErrorMessage } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import type { PackageItem, Testimonial } from "@/lib/services/types";
 
 const WHATSAPP_NUMBER = "919876543210";
 
@@ -34,17 +37,24 @@ const portfolioHighlights = [
 ];
 
 const Index = () => {
-  const [packages, setPackages] = useState<any[]>([]);
-  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
-    supabase.from("packages").select("*").eq("active", true).order("sort_order").limit(3).then(({ data }) => {
-      if (data) setPackages(data);
-    });
-    supabase.from("testimonials").select("*").eq("published", true).eq("featured", true).limit(6).then(({ data }) => {
-      if (data) setTestimonials(data);
-    });
-  }, []);
+    Promise.all([publicApi.getPackages(3), publicApi.getTestimonials(6)])
+      .then(([packagesData, testimonialsData]) => {
+        setPackages(packagesData);
+        setTestimonials(testimonialsData);
+      })
+      .catch((error) => {
+        toast({
+          title: "Data Load Error",
+          description: extractApiErrorMessage(error, "Homepage data could not be loaded."),
+          variant: "destructive",
+        });
+      });
+  }, [toast]);
 
   return (
     <main>
@@ -193,7 +203,7 @@ const Index = () => {
                   price={pkg.price}
                   tier={pkg.tier}
                   deliverables={Array.isArray(pkg.deliverables) ? pkg.deliverables : []}
-                  isPopular={pkg.is_popular}
+                  isPopular={pkg.isPopular}
                   index={i}
                 />
               ))}
@@ -219,7 +229,7 @@ const Index = () => {
             <SectionHeading title="Client Stories" subtitle="Hear from those who trusted us with their moments." crown />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {testimonials.map((t, i) => (
-                <TestimonialCard key={t.id} name={t.client_name} role={t.client_role} review={t.review} rating={t.rating} index={i} />
+                <TestimonialCard key={t.id} name={t.clientName} role={t.clientRole} review={t.review} rating={t.rating} index={i} />
               ))}
             </div>
             <div className="text-center mt-8">

@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Crown, LayoutDashboard, CalendarDays, Users, UserCheck, FolderOpen, Package, Settings, LogOut, ChevronLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const links = [
@@ -16,13 +15,13 @@ const links = [
 const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, logout } = useAdminAuth();
 
   const isActive = (path: string, exact?: boolean) =>
     exact ? location.pathname === path : location.pathname.startsWith(path);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     navigate("/");
   };
 

@@ -1,12 +1,17 @@
-import { useState, useEffect, createContext, useContext } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import { authApi } from "@/lib/services/authApi";
+import { extractApiErrorMessage } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import type { AuthUser } from "@/lib/services/types";
 
 interface AdminAuthContext {
-  user: any;
+  user: AuthUser | null;
   isAdmin: boolean;
   isStaff: boolean;
   isAdminOrStaff: boolean;
   loading: boolean;
+  refreshAuth: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AdminAuthCtx = createContext<AdminAuthContext>({
@@ -15,55 +20,74 @@ const AdminAuthCtx = createContext<AdminAuthContext>({
   isStaff: false,
   isAdminOrStaff: false,
   loading: true,
+  refreshAuth: async () => {},
+  logout: async () => {},
 });
 
 export const useAdminAuth = () => useContext(AdminAuthCtx);
 
 export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const checkRoles = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles" as any)
-      .select("role")
-      .eq("user_id", userId);
-    const roles = (data as any[])?.map((r: any) => r.role) || [];
-    setIsAdmin(roles.includes("admin"));
-    setIsStaff(roles.includes("staff"));
-    setLoading(false);
+  const applyUserState = (authUser: AuthUser | null) => {
+    setUser(authUser);
+    setIsAdmin(authUser?.role === "ADMIN");
+    setIsStaff(authUser?.role === "STAFF");
   };
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        checkRoles(u.id);
-      } else {
-        setIsAdmin(false);
-        setIsStaff(false);
-        setLoading(false);
-      }
-    });
+  const refreshAuth = useCallback(async () => {
+    setLoading(true);
+    try {
+      const authUser = await authApi.me();
+      applyUserState(authUser);
+    } catch (error) {
+      applyUserState(null);
+      toast({
+        title: "Authentication Error",
+        description: extractApiErrorMessage(error, "Unable to verify login session."),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        checkRoles(u.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      applyUserState(null);
+      window.dispatchEvent(new Event("auth-changed"));
+    }
   }, []);
 
+  useEffect(() => {
+    void refreshAuth();
+
+    const onAuthChanged = () => {
+      void refreshAuth();
+    };
+
+    window.addEventListener("auth-changed", onAuthChanged);
+    return () => window.removeEventListener("auth-changed", onAuthChanged);
+  }, [refreshAuth]);
+
   return (
-    <AdminAuthCtx.Provider value={{ user, isAdmin, isStaff, isAdminOrStaff: isAdmin || isStaff, loading }}>
+    <AdminAuthCtx.Provider
+      value={{
+        user,
+        isAdmin,
+        isStaff,
+        isAdminOrStaff: isAdmin || isStaff,
+        loading,
+        refreshAuth,
+        logout,
+      }}
+    >
       {children}
     </AdminAuthCtx.Provider>
   );

@@ -1,9 +1,41 @@
 services:
+  mysql:
+    image: mysql:8.4
+    container_name: photographer-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: photographer
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      - PORT=8080
+      PORT: 8080
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/photographer?createDatabaseIfNotExist=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: change-this-secret-to-a-64-char-string-change-this-secret-to-a-64-char-string
+      JWT_EXPIRATION_MS: 86400000
+      COOKIE_SECURE: "false"
+      COOKIE_SAMESITE: Lax
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:8080
+
+volumes:
+  mysql_data:

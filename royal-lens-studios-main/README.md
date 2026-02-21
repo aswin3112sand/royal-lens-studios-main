@@ -1,93 +1,57 @@
-# Welcome to your Lovable project
+# Photographer Website
 
-## Project info
+Full-stack project with:
+- Frontend: Vite + React + Tailwind (`royal-lens-studios-main/`)
+- Backend: Java Spring Boot + JWT + MySQL (`backend/`)
+- Deploy: Render Web Service (Docker)
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Local development
 
-## Docker deployment
+### 1) Start backend (Spring Boot)
+From repo root:
 
-Run these commands from the repo root (`royal-lens-studios-main`), not from inside the nested app folder.
-
-```sh
-# Build the production image
-docker build -t royal-lens-studios .
-
-# Run the container
-docker run --rm -p 8080:8080 --name royal-lens-studios royal-lens-studios
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Then open: `http://localhost:8080`
+Backend runs on `http://localhost:8080`.
 
-You can also use Docker Compose:
+### 2) Start frontend (Vite)
+From repo root:
 
-```sh
-docker compose up --build -d
+```bash
+cd royal-lens-studios-main
+npm.cmd install
+npm.cmd run dev -- --host 0.0.0.0 --port 5173
 ```
 
-## How can I edit this code?
+Frontend runs on `http://localhost:5173`.
 
-There are several ways of editing your application.
+Create `royal-lens-studios-main/.env` with:
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```env
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+## Docker (single service style)
+From repo root:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+docker compose up --build
+```
 
-**Use GitHub Codespaces**
+App runs on `http://localhost:8080`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Render deployment
+- Service type: `Web Service` (Docker)
+- Uses root `Dockerfile`
+- Health check: `/actuator/health`
+- Configure env vars from `royal-lens-studios-main/.env.render.example`
 
-## What technologies are used for this project?
+## Admin promotion (manual)
+After first user signup, promote admin in MySQL:
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```sql
+UPDATE users SET role='ADMIN' WHERE email='your-email@example.com';
+```

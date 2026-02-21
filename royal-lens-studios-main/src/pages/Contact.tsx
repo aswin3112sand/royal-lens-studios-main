@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import PageHero from "@/components/PageHero";
-import { supabase } from "@/integrations/supabase/client";
+import { publicApi } from "@/lib/services/publicApi";
+import { extractApiErrorMessage } from "@/lib/api";
 
 const WHATSAPP_NUMBER = "919876543210";
 
@@ -18,17 +19,22 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.from("contact_messages").insert({
-      name: form.name,
-      email: form.email,
-      message: form.message,
-    });
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: "Failed to send message. Please try again.", variant: "destructive" });
-    } else {
+    try {
+      await publicApi.createContactMessage({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+      });
       toast({ title: "Message Sent!", description: "We'll get back to you soon." });
       setForm({ name: "", email: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: extractApiErrorMessage(error, "Failed to send message. Please try again."),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -1,38 +1,45 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminApi } from "@/lib/services/adminApi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import { extractApiErrorMessage } from "@/lib/api";
+import type { Booking } from "@/lib/services/types";
 
 const statuses = ["pending", "confirmed", "rescheduled", "completed", "cancelled"];
 
 const AdminBookings = () => {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [search, setSearch] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => { fetchBookings(); }, []);
+  useEffect(() => { void fetchBookings(); }, []);
 
   const fetchBookings = async () => {
-    const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
-    setBookings((data as any[]) || []);
+    try {
+      const data = await adminApi.getBookings();
+      setBookings(data);
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to load bookings."), variant: "destructive" });
+    }
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else {
+  const updateStatus = async (id: number, status: string) => {
+    try {
+      await adminApi.updateBookingStatus(id, status);
       toast({ title: "Updated", description: `Booking status changed to ${status}.` });
-      fetchBookings();
+      await fetchBookings();
+    } catch (error) {
+      toast({ title: "Error", description: extractApiErrorMessage(error, "Failed to update booking status."), variant: "destructive" });
     }
   };
 
   const filtered = bookings.filter((b) =>
     b.name.toLowerCase().includes(search.toLowerCase()) ||
     b.email.toLowerCase().includes(search.toLowerCase()) ||
-    b.shoot_type.toLowerCase().includes(search.toLowerCase())
+    b.shootType.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -69,9 +76,9 @@ const AdminBookings = () => {
                       <p className="font-medium text-sm">{b.name}</p>
                       <p className="text-xs text-muted-foreground">{b.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm">{b.shoot_type}</td>
-                    <td className="px-4 py-3 text-sm text-gold">{b.preferred_date ? format(new Date(b.preferred_date), "PP") : "—"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{b.phone || "—"}</td>
+                    <td className="px-4 py-3 text-sm">{b.shootType}</td>
+                    <td className="px-4 py-3 text-sm text-gold">{b.preferredDate ? format(new Date(b.preferredDate), "PP") : "-"}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{b.phone || "-"}</td>
                     <td className="px-4 py-3">
                       <Select value={b.status} onValueChange={(v) => updateStatus(b.id, v)}>
                         <SelectTrigger className="w-32 h-8 text-xs bg-background/30">
