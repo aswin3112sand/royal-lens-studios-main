@@ -8,6 +8,7 @@ import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
+import PostRenderWarmup from "@/components/PostRenderWarmup";
 
 const Index = lazy(() => import("./pages/Index"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
@@ -51,6 +52,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <PostRenderWarmup />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* Public routes */}

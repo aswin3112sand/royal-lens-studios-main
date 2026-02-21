@@ -13,6 +13,10 @@ const LazyVideo = ({ src, deferMs = 250, autoPlay, preload, ...props }: LazyVide
   useEffect(() => {
     const node = videoRef.current;
     if (!node) return;
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setInView(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
