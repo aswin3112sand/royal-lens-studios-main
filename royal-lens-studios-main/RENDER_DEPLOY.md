@@ -3,6 +3,7 @@
 This project is:
 - Frontend: Vite + React
 - Backend integration: Supabase client SDK in frontend (`src/integrations/supabase/client.ts`)
+- Startup guard: top-level error boundary in `src/components/StartupErrorBoundary.tsx`
 
 ## Required Render static site settings
 
@@ -27,6 +28,8 @@ Use the same values from local `.env`.
 Template: `.env.render.example`
 
 Important: Vite reads `VITE_*` vars at build time, so redeploy after changing them.
+
+If env config is missing/invalid, the app now shows a clear startup error screen instead of a blank page.
 
 ## React Router rewrite rule
 
@@ -64,6 +67,7 @@ If using `render.yaml`, this route is already configured.
 - Fix:
   - Set env vars in Render.
   - Trigger a fresh deploy.
+  - If this happens at runtime, startup boundary will show the missing keys directly.
 
 ### 3) Blank page on deep links like `/about`
 - Cause: missing SPA rewrite.

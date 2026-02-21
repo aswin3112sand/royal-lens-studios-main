@@ -5,10 +5,20 @@ interface LazyVideoProps extends Omit<React.VideoHTMLAttributes<HTMLVideoElement
   deferMs?: number;
 }
 
-const LazyVideo = ({ src, deferMs = 250, autoPlay, preload, ...props }: LazyVideoProps) => {
+const LazyVideo = ({
+  src,
+  deferMs = 250,
+  autoPlay,
+  preload,
+  onError,
+  poster,
+  style,
+  ...props
+}: LazyVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [inView, setInView] = useState(false);
   const [deferredReady, setDeferredReady] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const node = videoRef.current;
@@ -43,12 +53,29 @@ const LazyVideo = ({ src, deferMs = 250, autoPlay, preload, ...props }: LazyVide
     };
   }, [deferMs]);
 
-  const shouldLoad = inView && deferredReady;
+  const shouldLoad = inView && deferredReady && !hasError;
 
   useEffect(() => {
-    if (!shouldLoad || !autoPlay || !videoRef.current) return;
+    if (!shouldLoad || !autoPlay || !videoRef.current || hasError) return;
     videoRef.current.play().catch(() => {});
-  }, [shouldLoad, autoPlay]);
+  }, [shouldLoad, autoPlay, hasError]);
+
+  const handleError = (event: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    setHasError(true);
+    if (typeof onError === "function") {
+      onError(event);
+    }
+  };
+
+  const shouldShowPosterFallback = Boolean(poster) && (!shouldLoad || hasError);
+  const mergedStyle = shouldShowPosterFallback
+    ? {
+        backgroundImage: `url(${poster})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        ...style,
+      }
+    : style;
 
   return (
     <video
@@ -56,6 +83,9 @@ const LazyVideo = ({ src, deferMs = 250, autoPlay, preload, ...props }: LazyVide
       {...props}
       autoPlay={autoPlay && shouldLoad}
       preload={shouldLoad ? preload ?? "metadata" : "none"}
+      onError={handleError}
+      poster={poster}
+      style={mergedStyle}
       src={shouldLoad ? src : undefined}
     />
   );
