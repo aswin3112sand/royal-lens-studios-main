@@ -2,6 +2,54 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "backend: clean start (8080)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$p=(Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique); if($p){$p | ForEach-Object {Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue}}; .\\mvnw.cmd spring-boot:run --% -Dspring-boot.run.profiles=dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": [
+          {
+            "regexp": "^(.*)$",
+            "message": 1
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "\\[INFO\\] Scanning for projects",
+          "endsPattern": "Tomcat started on port 8080"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "backend: stop (8080)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$p=(Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique); if($p){$p | ForEach-Object {Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue}}"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "vite: clean start (5173)",
       "type": "shell",
       "command": "powershell",
@@ -47,6 +95,15 @@
         "-Command",
         "$p=(Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -First 1); if($p){Stop-Process -Id $p -Force}"
       ],
+      "problemMatcher": []
+    },
+    {
+      "label": "fullstack: clean start (backend + vite)",
+      "dependsOn": [
+        "backend: clean start (8080)",
+        "vite: clean start (5173)"
+      ],
+      "dependsOrder": "parallel",
       "problemMatcher": []
     }
   ]

@@ -49,8 +49,8 @@ public class AuthService {
     user.setRole(Role.USER);
 
     User saved = userService.save(user);
-    attachAuthCookie(saved, response);
-    return new AuthResponse(toView(saved));
+    String token = attachAuthCookie(saved, response);
+    return new AuthResponse(toView(saved), token);
   }
 
   public AuthResponse login(LoginRequest req, HttpServletResponse response) {
@@ -61,8 +61,8 @@ public class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
-    attachAuthCookie(user, response);
-    return new AuthResponse(toView(user));
+    String token = attachAuthCookie(user, response);
+    return new AuthResponse(toView(user), token);
   }
 
   public AuthResponse me(Authentication authentication) {
@@ -75,7 +75,7 @@ public class AuthService {
       throw new UnauthorizedException("Not authenticated");
     }
 
-    return new AuthResponse(toView(user));
+    return new AuthResponse(toView(user), null);
   }
 
   public void clearCookie(HttpServletResponse response) {
@@ -89,7 +89,7 @@ public class AuthService {
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
   }
 
-  private void attachAuthCookie(User user, HttpServletResponse response) {
+  private String attachAuthCookie(User user, HttpServletResponse response) {
     String token = jwtService.generateToken(user);
     ResponseCookie cookie = ResponseCookie.from(cookieName, token)
         .httpOnly(true)
@@ -99,6 +99,7 @@ public class AuthService {
         .maxAge(jwtExpirationMs / 1000)
         .build();
     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    return token;
   }
 
   private UserView toView(User user) {

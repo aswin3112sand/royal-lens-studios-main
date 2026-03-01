@@ -12,10 +12,19 @@ From repo root:
 
 ```bash
 cd backend
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Backend runs on `http://localhost:8080`.
+
+On Windows PowerShell, use:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run --% -Dspring-boot.run.profiles=dev
+```
+
+`mvnw` auto-downloads Maven, so no global Maven install is required.
 
 ### 2) Start frontend (Vite)
 From repo root:
@@ -48,6 +57,7 @@ App runs on `http://localhost:8080`.
 - Uses root `Dockerfile`
 - Health check: `/actuator/health`
 - Configure env vars from `royal-lens-studios-main/.env.render.example`
+- Keep `VITE_API_BASE_URL` empty for same-origin setup (frontend + API in same service)
 
 ## Admin promotion (manual)
 After first user signup, promote admin in MySQL:

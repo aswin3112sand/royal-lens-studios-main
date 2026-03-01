@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Calendar, Camera, Award, Users } from "lucide-react";
+﻿import { motion } from "framer-motion";
+import { Award, Calendar, Camera, Users } from "lucide-react";
+import { fadeSlideUp, staggerContainer } from "@/lib/motion";
 
 const stats = [
   { icon: Calendar, value: "12+", label: "Years Experience" },
@@ -9,22 +10,21 @@ const stats = [
 ];
 
 const StatsRow = () => (
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-    {stats.map((stat, i) => (
-      <motion.div
-        key={stat.label}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: i * 0.1 }}
-        className="glass rounded-lg p-6 text-center hover:border-gold/30 transition-colors"
-      >
-        <stat.icon className="w-7 h-7 text-gold mx-auto mb-2" />
-        <div className="font-serif text-3xl font-bold text-gold">{stat.value}</div>
-        <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">{stat.label}</div>
-      </motion.div>
+  <motion.div
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true, amount: 0.25 }}
+    variants={staggerContainer}
+    className="grid grid-cols-2 gap-4 lg:grid-cols-4"
+  >
+    {stats.map((stat) => (
+      <motion.article key={stat.label} variants={fadeSlideUp} className="neon-card rounded-xl p-4 text-center md:p-6">
+        <stat.icon className="mx-auto mb-2 h-6 w-6 text-secondary" />
+        <p className="text-2xl font-extrabold text-primary md:text-3xl">{stat.value}</p>
+        <p className="mt-1 text-xs uppercase tracking-wider text-foreground/70">{stat.label}</p>
+      </motion.article>
     ))}
-  </div>
+  </motion.div>
 );
 
 export default StatsRow;

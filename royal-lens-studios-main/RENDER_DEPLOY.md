@@ -5,6 +5,7 @@
 - Environment: **Docker**
 - Dockerfile: `./Dockerfile`
 - Health Check Path: `/actuator/health`
+- Graceful shutdown window: `maxShutdownDelaySeconds: 45` (in `render.yaml`)
 
 ## Required env vars
 
@@ -16,6 +17,8 @@ SPRING_DATASOURCE_PASSWORD=
 SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
 SPRING_JPA_HIBERNATE_DDL_AUTO=update
 SPRING_FLYWAY_ENABLED=false
+APP_FORCE_H2_FALLBACK=false
+APP_AUTO_H2_FALLBACK=true
 JWT_SECRET=<64+ char secret>
 JWT_EXPIRATION_MS=86400000
 COOKIE_SECURE=true
@@ -24,6 +27,11 @@ APP_CORS_ALLOWED_ORIGINS=https://<your-render-domain>
 ```
 
 `VITE_API_BASE_URL` is optional in production because frontend and API are same origin inside the same Spring app.
+Keep it empty unless frontend is hosted separately.
+
+## Performance defaults included in this repo
+- Production gzip compression is enabled in `application-prod.yml`.
+- Docker runtime uses container-aware JVM memory flags (`JAVA_OPTS`).
 
 ## Blank screen checklist
 1. Open browser DevTools -> Console + Network.

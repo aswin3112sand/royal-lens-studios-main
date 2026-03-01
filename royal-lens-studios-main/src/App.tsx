@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
 import PostRenderWarmup from "@/components/PostRenderWarmup";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -31,12 +30,11 @@ const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const queryClient = new QueryClient();
 
 const PublicLayout = ({ children }: { children: React.ReactNode }) => (
-  <>
+  <div className="review-theme-site">
     <Navbar />
     {children}
     <Footer />
-    <WhatsAppFloat />
-  </>
+  </div>
 );
 
 const RouteFallback = () => (

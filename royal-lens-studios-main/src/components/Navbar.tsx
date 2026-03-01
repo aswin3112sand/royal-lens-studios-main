@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Crown, User, LogOut, Shield, MessageCircle } from "lucide-react";
+import { Menu, X, Crown, User, LogOut, Shield, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
@@ -24,10 +24,12 @@ const Navbar = () => {
   const { user, isAdminOrStaff, logout, loading } = useAdminAuth();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const closeMobile = () => setMobileOpen(false);
 
   const handleLogout = async () => {
     await logout();
@@ -36,30 +38,28 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "glass-strong shadow-lg shadow-black/20 border-b border-gold/10"
-          : "bg-transparent"
+      initial={{ y: -24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
+        scrolled ? "glass-strong border-primary/35" : "border-transparent bg-transparent"
       }`}
     >
-      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-16 md:h-20">
-        <Link to="/" className="flex items-center gap-2">
-          <Crown className="w-7 h-7 text-gold" />
-          <span className="font-serif text-xl md:text-2xl font-bold text-foreground">
-            Royal <span className="text-gold">Lens</span>
+      <div className="container mx-auto flex h-[var(--nav-h-mobile)] items-center justify-between md:h-[var(--nav-h-desktop)]">
+        <Link to="/" className="ring-focus flex items-center gap-2 rounded-md">
+          <Crown className="h-7 w-7 text-primary" />
+          <span className="text-xl font-bold md:text-2xl">
+            Royal <span className="text-primary">Lens</span>
           </span>
         </Link>
 
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`text-sm font-medium transition-colors hover:text-gold ${
-                location.pathname === link.to ? "text-gold" : "text-foreground/80"
+              className={`ring-focus rounded-md px-1 text-sm font-medium transition-colors ${
+                location.pathname === link.to ? "text-primary" : "text-foreground/80 hover:text-secondary"
               }`}
             >
               {link.label}
@@ -67,87 +67,120 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/60 hover:text-[#25D366] transition-colors"
+            aria-label="Chat on WhatsApp"
+            className="ring-focus inline-flex h-9 w-9 items-center justify-center rounded-full border border-secondary/30 text-secondary transition-colors hover:text-primary"
           >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="h-4 w-4" />
           </a>
-          {loading ? null : user ? (
+
+          {loading ? (
+            <Button variant="ghost" size="sm" className="cursor-default text-foreground/75">
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Checking
+            </Button>
+          ) : user ? (
             <>
               {isAdminOrStaff && (
-                <Button variant="ghost" size="sm" className="text-gold hover:text-gold-light" onClick={() => navigate("/admin")}>
-                  <Shield className="w-4 h-4 mr-1" /> Admin
+                <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/admin")}>
+                  <Shield className="mr-1 h-4 w-4" /> Admin
                 </Button>
               )}
-              <Button variant="ghost" size="sm" className="text-foreground/80 hover:text-gold" onClick={() => navigate("/booking")}>
-                <User className="w-4 h-4 mr-1" /> My Bookings
+              <Button variant="ghost" size="sm" onClick={() => navigate("/booking")}>
+                <User className="mr-1 h-4 w-4" /> My Bookings
               </Button>
-              <Button variant="ghost" size="sm" className="text-foreground/80 hover:text-gold" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-1" /> Logout
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-1 h-4 w-4" /> Logout
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" className="text-foreground/80 hover:text-gold" onClick={() => navigate("/auth")}>
-                Login
-              </Button>
-              <Button size="sm" className="bg-gold text-background hover:bg-gold-light font-semibold" onClick={() => navigate("/booking")}>
-                Book Now
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Login</Button>
+              <Button size="sm" className="neon-btn-primary" onClick={() => navigate("/booking")}>Book Now</Button>
             </>
           )}
         </div>
 
-        {/* Mobile toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <button
+          className="ring-focus inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground md:hidden"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass-strong border-t border-gold/10"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="glass-strong border-t border-primary/30 md:hidden"
           >
-            <div className="flex flex-col p-4 gap-1">
-              {navLinks.map((link, i) => (
-                <motion.div key={link.to} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+            <div className="container mx-auto py-4">
+              <div className="grid gap-2">
+                {navLinks.map((link) => (
                   <Link
+                    key={link.to}
                     to={link.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={`block text-sm font-medium py-2.5 px-3 rounded-lg transition-colors hover:text-gold hover:bg-gold/5 ${
-                      location.pathname === link.to ? "text-gold bg-gold/5" : "text-foreground/80"
+                    onClick={closeMobile}
+                    className={`ring-focus rounded-lg px-3 py-2.5 text-sm font-medium ${
+                      location.pathname === link.to ? "bg-primary/15 text-primary" : "text-foreground/85"
                     }`}
                   >
                     {link.label}
                   </Link>
-                </motion.div>
-              ))}
-              <div className="h-px bg-gold/10 my-2" />
-              <div className="flex flex-col gap-1">
-                {!loading && user ? (
+                ))}
+              </div>
+
+              <div className="my-3 h-px bg-border" />
+
+              <div className="grid gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => {
+                    window.open(`https://wa.me/${WHATSAPP_NUMBER}`, "_blank", "noopener,noreferrer");
+                    closeMobile();
+                  }}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+                </Button>
+
+                {loading ? (
+                  <Button variant="ghost" size="sm" className="justify-start text-foreground/75">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking account...
+                  </Button>
+                ) : user ? (
                   <>
-                    <Button variant="ghost" size="sm" className="justify-start text-foreground/80" onClick={() => { navigate("/booking"); setMobileOpen(false); }}>
-                      <User className="w-4 h-4 mr-1" /> My Bookings
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                      <User className="mr-2 h-4 w-4" /> My Bookings
                     </Button>
-                    <Button variant="ghost" size="sm" className="justify-start text-foreground/80" onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-1" /> Logout
+                    {isAdminOrStaff && (
+                      <Button variant="ghost" size="sm" className="justify-start text-primary" onClick={() => { navigate("/admin"); closeMobile(); }}>
+                        <Shield className="mr-2 h-4 w-4" /> Admin
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={async () => { await handleLogout(); closeMobile(); }}>
+                      <LogOut className="mr-2 h-4 w-4" /> Logout
                     </Button>
                   </>
-                ) : !loading ? (
+                ) : (
                   <>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); setMobileOpen(false); }}>Login</Button>
-                    <Button size="sm" className="bg-gold text-background hover:bg-gold-light font-semibold" onClick={() => { navigate("/booking"); setMobileOpen(false); }}>Book Now</Button>
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); closeMobile(); }}>
+                      Login
+                    </Button>
+                    <Button size="sm" className="neon-btn-primary justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                      Book Now
+                    </Button>
                   </>
-                ) : null}
+                )}
               </div>
             </div>
           </motion.div>

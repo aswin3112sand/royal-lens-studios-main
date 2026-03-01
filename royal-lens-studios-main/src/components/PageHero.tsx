@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import LazyVideo from "@/components/LazyVideo";
+import { fadeSlideUp } from "@/lib/motion";
 
 interface PageHeroProps {
   title: string;
@@ -8,8 +9,10 @@ interface PageHeroProps {
   video?: string;
 }
 
+const heroMinHeight = "min-h-[46svh] md:min-h-[54svh]";
+
 const PageHero = ({ title, subtitle, image, video }: PageHeroProps) => (
-  <section className="relative h-[42svh] md:h-[50vh] pt-16 md:pt-20 flex items-center justify-center overflow-hidden">
+  <section className={`relative overflow-hidden pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)] ${heroMinHeight}`}>
     {video ? (
       <LazyVideo
         src={video}
@@ -18,24 +21,29 @@ const PageHero = ({ title, subtitle, image, video }: PageHeroProps) => (
         loop
         playsInline
         poster="/placeholder.svg"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover"
       />
     ) : (
-      <img src={image} alt="" loading="eager" fetchPriority="high" className="absolute inset-0 w-full h-full object-cover" />
+      <img
+        src={image}
+        alt=""
+        loading="eager"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
     )}
-    <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7 }}
-      className="relative z-10 text-center px-4"
-    >
-      <h1 className="font-serif text-4xl md:text-6xl font-bold mb-3">
-        <span className="text-gold">{title}</span>
-      </h1>
-      {subtitle && <p className="text-foreground/70 text-lg md:text-xl max-w-2xl mx-auto">{subtitle}</p>}
-      <div className="mt-4 mx-auto w-20 h-0.5 bg-gold/50 rounded-full" />
-    </motion.div>
+
+    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,15,26,0.58),rgba(15,15,26,0.88))]" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_12%,rgba(108,92,231,0.24),transparent_44%)]" />
+
+    <div className={`relative z-10 flex items-center justify-center px-4 text-center ${heroMinHeight}`}>
+      <motion.div initial="hidden" animate="visible" variants={fadeSlideUp}>
+        <h1 className="text-4xl font-extrabold md:text-6xl">
+          <span className="neon-gradient-text">{title}</span>
+        </h1>
+        {subtitle && <p className="mx-auto mt-3 max-w-2xl text-base text-foreground/82 md:text-lg">{subtitle}</p>}
+        <div className="mx-auto mt-5 h-0.5 w-24 rounded-full bg-gradient-to-r from-primary via-secondary to-accent" />
+      </motion.div>
+    </div>
   </section>
 );
 

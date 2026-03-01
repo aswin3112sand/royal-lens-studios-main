@@ -2,6 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "chrome",
+      "url": "http://localhost:8080",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Attach to Chrome",
+      "port": 9222,
+      "request": "attach",
+      "type": "chrome",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
       "type": "pwa-chrome",
       "request": "launch",
       "name": "Vite + Chrome (Clean 5173)",
@@ -15,6 +29,14 @@
       "name": "Chrome on Existing Vite (5173)",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/royal-lens-studios-main"
+    },
+    {
+      "type": "pwa-chrome",
+      "request": "launch",
+      "name": "Full Stack + Chrome (5173 + 8080)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/royal-lens-studios-main",
+      "preLaunchTask": "fullstack: clean start (backend + vite)"
     }
   ]
 }

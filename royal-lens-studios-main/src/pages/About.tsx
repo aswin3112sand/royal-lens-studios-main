@@ -1,12 +1,15 @@
-import { motion } from "framer-motion";
-import { Award, Users, Camera, Calendar } from "lucide-react";
+﻿import { motion } from "framer-motion";
+import { Award, Calendar, Camera, Users } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import SectionHeading from "@/components/SectionHeading";
+import SiteContainer from "@/components/layout/SiteContainer";
+import SectionBlock from "@/components/layout/SectionBlock";
+import { fadeSlideLeft, fadeSlideRight, fadeSlideUp, staggerContainer } from "@/lib/motion";
 import aboutHeroVideo from "@/assets/about-hero-video.mp4";
 
 const milestones = [
   { year: "2012", title: "Studio Founded", desc: "Royal Lens Studio was born from a passion for cinematic storytelling." },
-  { year: "2015", title: "First Major Award", desc: "Recognized as 'Best Wedding Photographer' at the International Photo Awards." },
+  { year: "2015", title: "First Major Award", desc: "Recognized as Best Wedding Photographer at the International Photo Awards." },
   { year: "2018", title: "500+ Clients Served", desc: "A milestone celebrating half a thousand stories beautifully told." },
   { year: "2021", title: "Studio Expansion", desc: "Opened a second studio location with state-of-the-art equipment." },
   { year: "2024", title: "10,000 Sessions", desc: "Reaching the landmark of ten thousand photography sessions completed." },
@@ -34,7 +37,12 @@ const galleryImages = [
 ];
 
 const getInitials = (name: string) =>
-  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
 const About = () => (
   <main>
@@ -44,97 +52,108 @@ const About = () => (
       video={aboutHeroVideo}
     />
 
-    <section className="py-16 md:py-20">
-      <div className="container mx-auto px-4">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="glass rounded-lg p-6 text-center"
-            >
-              <stat.icon className="w-8 h-8 text-gold mx-auto mb-3" />
-              <div className="font-serif text-3xl font-bold text-gold">{stat.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
-            </motion.div>
+    <SectionBlock tone="base">
+      <SiteContainer>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          variants={staggerContainer}
+          className="grid grid-cols-2 gap-4 lg:grid-cols-4"
+        >
+          {stats.map((stat) => (
+            <motion.article key={stat.label} variants={fadeSlideUp} className="neon-card rounded-xl p-5 text-center">
+              <stat.icon className="mx-auto mb-3 h-7 w-7 text-secondary" />
+              <p className="text-3xl font-extrabold text-primary">{stat.value}</p>
+              <p className="mt-1 text-sm text-foreground/72">{stat.label}</p>
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
+      </SiteContainer>
+    </SectionBlock>
 
-        {/* Studio Gallery Bento */}
-        <SectionHeading title="Our Studio" subtitle="Where magic happens — state-of-the-art spaces designed for perfection." />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
-          {galleryImages.map((img, i) => (
+    <SectionBlock tone="alt">
+      <SiteContainer>
+        <SectionHeading title="Our Studio" subtitle="Where magic happens with spaces designed for precision and creativity." />
+
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={staggerContainer}
+          className="grid grid-cols-2 gap-4 md:grid-cols-4"
+        >
+          {galleryImages.map((img, index) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`rounded-lg overflow-hidden ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}
+              key={img}
+              variants={fadeSlideUp}
+              className={`overflow-hidden rounded-xl ${index === 0 ? "md:col-span-2 md:row-span-2" : ""}`}
             >
               <img
                 src={img}
                 alt="Studio"
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </motion.div>
           ))}
-        </div>
+        </motion.div>
+      </SiteContainer>
+    </SectionBlock>
 
-        {/* Timeline */}
-        <div className="max-w-3xl mx-auto mb-20">
-          <h3 className="font-serif text-2xl font-bold text-center text-gold mb-10">Milestones</h3>
-          <div className="relative">
-            <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-gold/40 via-gold/20 to-transparent" />
-            {milestones.map((m, i) => (
-              <motion.div
-                key={m.year}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className={`relative flex items-start mb-10 ${i % 2 === 0 ? "md:flex-row-reverse" : ""}`}
+    <SectionBlock tone="base">
+      <SiteContainer narrow>
+        <SectionHeading title="Milestones" subtitle="Key moments that shaped our creative journey." />
+
+        <div className="relative">
+          <div className="absolute bottom-0 left-4 top-0 w-px bg-gradient-to-b from-primary/45 via-primary/25 to-transparent md:left-1/2" />
+          <div className="grid gap-6">
+            {milestones.map((item, index) => (
+              <motion.article
+                key={item.year}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.35 }}
+                variants={index % 2 === 0 ? fadeSlideLeft : fadeSlideRight}
+                className={`relative flex ${index % 2 === 0 ? "md:flex-row-reverse" : ""}`}
               >
-                <div className="absolute left-4 md:left-1/2 w-4 h-4 bg-gold rounded-full -translate-x-1/2 mt-1.5 z-10 gold-glow" />
-                <div className={`ml-10 md:ml-0 md:w-1/2 ${i % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"}`}>
-                  <span className="text-gold font-bold font-serif text-lg">{m.year}</span>
-                  <h4 className="font-serif text-xl font-semibold mt-1">{m.title}</h4>
-                  <p className="text-muted-foreground text-sm mt-1">{m.desc}</p>
+                <span className="absolute left-4 top-3 z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_12px_rgba(108,92,231,0.6)] md:left-1/2" />
+                <div className={`ml-9 rounded-xl border border-primary/20 bg-background/40 p-4 md:ml-0 md:w-1/2 ${index % 2 === 0 ? "md:mr-10" : "md:ml-10"}`}>
+                  <p className="text-sm font-semibold text-secondary">{item.year}</p>
+                  <h3 className="mt-1 text-xl font-bold">{item.title}</h3>
+                  <p className="mt-1.5 text-sm text-foreground/75">{item.desc}</p>
                 </div>
-              </motion.div>
+              </motion.article>
             ))}
           </div>
         </div>
+      </SiteContainer>
+    </SectionBlock>
 
-        {/* Team */}
-        <SectionHeading title="Meet the Team" subtitle="The creative minds behind every royal frame." />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {team.map((member, i) => (
-            <motion.div
-              key={member.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="glass rounded-lg p-6 text-center group hover:border-gold/50 transition-all"
-            >
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold/30 to-gold/10 mx-auto mb-4 flex items-center justify-center">
-                <span className="font-serif text-xl font-bold text-gold">{getInitials(member.name)}</span>
+    <SectionBlock tone="alt">
+      <SiteContainer>
+        <SectionHeading title="Meet the Team" subtitle="The creative minds behind every premium frame." />
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          variants={staggerContainer}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {team.map((member) => (
+            <motion.article key={member.name} variants={fadeSlideUp} className="neon-card rounded-xl p-5 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/18 text-lg font-bold text-primary">
+                {getInitials(member.name)}
               </div>
-              <h4 className="font-serif text-lg font-bold">{member.name}</h4>
-              <p className="text-gold text-sm mt-1">{member.role}</p>
-              <p className="text-muted-foreground text-sm mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{member.bio}</p>
-            </motion.div>
+              <h3 className="text-lg font-bold">{member.name}</h3>
+              <p className="mt-1 text-sm text-secondary">{member.role}</p>
+              <p className="mt-3 text-sm text-foreground/72">{member.bio}</p>
+            </motion.article>
           ))}
-        </div>
-      </div>
-    </section>
+        </motion.div>
+      </SiteContainer>
+    </SectionBlock>
   </main>
 );
 

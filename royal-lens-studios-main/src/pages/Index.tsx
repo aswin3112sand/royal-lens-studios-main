@@ -1,298 +1,298 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Camera, ChevronRight, Sparkles, Heart, Shirt, Briefcase, PartyPopper, Baby, MessageCircle } from "lucide-react";
-import heroVideo from "@/assets/hero-video.mp4";
+import { ArrowRight, CheckCircle2, Music2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import LazyVideo from "@/components/LazyVideo";
-import SectionHeading from "@/components/SectionHeading";
-import StatsRow from "@/components/StatsRow";
-import ProcessTimeline from "@/components/ProcessTimeline";
-import PackageCard from "@/components/PackageCard";
-import TestimonialCard from "@/components/TestimonialCard";
 import { publicApi } from "@/lib/services/publicApi";
 import { extractApiErrorMessage } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import type { PackageItem, Testimonial } from "@/lib/services/types";
+import type { PackageItem } from "@/lib/services/types";
+import SiteContainer from "@/components/layout/SiteContainer";
+import SectionBlock from "@/components/layout/SectionBlock";
+import { fadeSlideLeft, fadeSlideRight, fadeSlideUp, staggerContainer } from "@/lib/motion";
 
-const WHATSAPP_NUMBER = "919876543210";
+interface LandingPlan {
+  id: string;
+  name: string;
+  priceLabel: string;
+  pitch: string;
+  features: string[];
+  featured?: boolean;
+}
 
-// Hero video is imported above
-
-const serviceSnap = [
-  { icon: Heart, title: "Weddings", desc: "Timeless love stories" },
-  { icon: Shirt, title: "Fashion", desc: "Bold editorial looks" },
-  { icon: Briefcase, title: "Corporate", desc: "Professional portraits" },
-  { icon: PartyPopper, title: "Events", desc: "Every moment captured" },
-  { icon: Baby, title: "Baby Shoots", desc: "Tiny precious memories" },
+const fallbackPlans: LandingPlan[] = [
+  {
+    id: "starter",
+    name: "Starter Launch",
+    priceLabel: "Rs 19,999",
+    pitch: "For early-stage creators who need high-conversion visual assets.",
+    features: ["Creative direction", "2-hour shoot", "25 retouched assets", "7-day delivery"],
+  },
+  {
+    id: "growth",
+    name: "Growth Scale",
+    priceLabel: "Rs 39,999",
+    pitch: "Built for teams running paid ads and weekly content cycles.",
+    features: ["Brand strategy call", "Full-day shoot", "80 retouched assets", "3-day priority delivery"],
+    featured: true,
+  },
+  {
+    id: "premium",
+    name: "Elite Authority",
+    priceLabel: "Custom",
+    pitch: "Cinematic campaigns for premium positioning and large launches.",
+    features: ["Campaign planning", "Multi-location shoot", "Dedicated creative lead", "Rapid iteration support"],
+  },
 ];
 
-const portfolioHighlights = [
-  { image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80", title: "The Grand Wedding", cat: "Weddings" },
-  { image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80", title: "Golden Hour", cat: "Portraits" },
-  { image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&q=80", title: "Haute Couture", cat: "Fashion" },
-  { image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80", title: "Corporate Gala", cat: "Events" },
-  { image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&q=80", title: "Little Prince", cat: "Baby" },
-  { image: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=600&q=80", title: "Romantic Elopement", cat: "Weddings" },
+const problemPoints = [
+  "Content looks good but does not convert visitors into bookings.",
+  "Inconsistent visual style weakens trust in your brand.",
+  "Slow delivery blocks campaign launches and paid ad timelines.",
+];
+
+const solutionCards = [
+  { title: "Conversion-first Creative", body: "Every frame is planned for clicks, trust, and action." },
+  { title: "Fast Production System", body: "Tight turnaround model to keep your growth engine moving." },
+  { title: "Premium Brand Positioning", body: "Neon-dark visual language crafted for modern high-ticket audiences." },
 ];
 
 const Index = () => {
-  const [packages, setPackages] = useState<PackageItem[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [apiPackages, setApiPackages] = useState<PackageItem[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    Promise.all([publicApi.getPackages(3), publicApi.getTestimonials(6)])
-      .then(([packagesData, testimonialsData]) => {
-        setPackages(packagesData);
-        setTestimonials(testimonialsData);
+    publicApi
+      .getPackages(3)
+      .then((packagesData) => {
+        setApiPackages(packagesData);
       })
       .catch((error) => {
         toast({
-          title: "Data Load Error",
-          description: extractApiErrorMessage(error, "Homepage data could not be loaded."),
-          variant: "destructive",
+          title: "Using default pricing",
+          description: extractApiErrorMessage(error, "Live pricing API unavailable. Showing starter pricing."),
         });
       });
   }, [toast]);
 
+  const plans = useMemo<LandingPlan[]>(() => {
+    if (!apiPackages.length) {
+      return fallbackPlans;
+    }
+
+    return apiPackages.map((pkg, index) => ({
+      id: String(pkg.id),
+      name: pkg.name,
+      priceLabel: typeof pkg.price === "number" ? `Rs ${pkg.price.toLocaleString("en-IN")}` : String(pkg.price),
+      pitch: pkg.tier ? `${pkg.tier} plan tuned for premium growth goals.` : "Tailored plan for modern creative teams.",
+      features:
+        Array.isArray(pkg.deliverables) && pkg.deliverables.length > 0
+          ? pkg.deliverables.slice(0, 4)
+          : fallbackPlans[index % fallbackPlans.length].features,
+      featured: Boolean(pkg.isPopular),
+    }));
+  }, [apiPackages]);
+
   return (
     <main>
-      {/* ═══ HERO ═══ */}
-      <section className="relative min-h-[100svh] overflow-hidden">
-        <div className="absolute inset-0">
-          <LazyVideo
-            src={heroVideo}
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/placeholder.svg"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+      <section id="home" className="relative overflow-hidden pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
+        <div className="absolute inset-0 neon-hero-bg" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,15,26,0.45),rgba(15,15,26,0.84))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,46,99,0.16),transparent_45%)]" />
 
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-[100svh] text-center px-4 pt-20 pb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-6">
-              <Camera className="w-14 h-14 text-gold" />
-            </div>
-            <h1 className="font-serif text-4xl md:text-7xl font-bold mb-6 leading-tight" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
-              Capture Your{" "}
-              <span className="text-gold" style={{ textShadow: '0 0 30px hsl(35 55% 65% / 0.4)' }}>Royal</span>{" "}
-              Moments
-            </h1>
-            <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-8" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
-              Where every frame tells a story of elegance, passion, and timeless beauty.
+        <SiteContainer className="relative z-10 flex min-h-[calc(100svh-var(--nav-h-mobile))] items-center md:min-h-[calc(100svh-var(--nav-h-desktop))]">
+          <motion.div initial="hidden" animate="visible" variants={fadeSlideUp} className="mx-auto max-w-4xl text-center">
+            <p className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-background/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Neon Dark Growth
             </p>
 
-            {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-10 text-sm text-foreground/70">
-              {["5+ Years", "2000+ Shoots", "Same-day Shortlist"].map((badge) => (
-                <span key={badge} className="flex items-center gap-1.5 glass rounded-full px-3 py-1">
-                  <span className="w-2 h-2 rounded-full bg-gold" />
-                  {badge}
-                </span>
-              ))}
-            </div>
+            <h1 className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl md:text-7xl">
+              Build a <span className="neon-gradient-text">Premium Visual Funnel</span> that Converts.
+            </h1>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
-              <Button asChild size="lg" className="w-full sm:w-auto bg-gold text-background hover:bg-gold-light font-semibold text-base px-8 shadow-lg shadow-gold/30 hover:scale-105 transition-transform">
-                <Link to="/booking">Book a Session <ChevronRight className="w-4 h-4 ml-1" /></Link>
+            <p className="mx-auto mt-5 max-w-2xl text-base text-foreground/85 md:text-lg">
+              High-impact visuals, fast production, and a modern growth-ready look that makes your brand feel expensive at first glance.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button asChild size="lg" className="neon-btn-primary w-full px-8 text-base font-semibold sm:w-auto">
+                <Link to="/booking">
+                  Book Growth Session <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-gold/40 text-gold bg-white/5 hover:bg-gold/10 hover:shadow-md hover:shadow-gold/20 font-semibold text-base px-8">
-                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="w-4 h-4 mr-2" /> Chat on WhatsApp
-                </a>
+              <Button asChild size="lg" variant="outline" className="neon-btn-outline w-full px-8 text-base font-semibold sm:w-auto">
+                <Link to="/contact">
+                  Talk to Team <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
           </motion.div>
-        </div>
+        </SiteContainer>
+
+        <a
+          href="#solution"
+          aria-label="Jump to solution section"
+          title="Jump to solution"
+          className="ring-focus fixed bottom-4 right-4 z-40 inline-flex h-11 w-11 items-center justify-center rounded-full border border-secondary/60 bg-background/70 text-secondary shadow-[0_0_18px_rgba(0,245,255,0.45)] backdrop-blur-md transition-transform duration-200 hover:scale-105 md:bottom-6 md:right-6"
+        >
+          <Music2 className="h-5 w-5" />
+        </a>
       </section>
 
-      {/* ═══ STATS ═══ */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <StatsRow />
-        </div>
-      </section>
+      <SectionBlock tone="base">
+        <SiteContainer className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideLeft}>
+            <h2 className="text-3xl font-extrabold leading-tight md:text-5xl">
+              Stop losing revenue to <span className="neon-gradient-text">weak creative</span>.
+            </h2>
+            <p className="mt-4 text-sm text-foreground/82 md:text-base">
+              Most brands spend on ads first and visuals later. That order kills conversion rate and burns budget.
+            </p>
+            <ul className="mt-6 space-y-3">
+              {problemPoints.map((point) => (
+                <li key={point} className="flex items-start gap-3 text-sm text-foreground/85 md:text-base">
+                  <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary shadow-[0_0_10px_rgba(108,92,231,0.9)]" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
 
-      {/* ═══ SERVICES SNAPSHOT ═══ */}
-      <section className="py-16 md:py-20 bg-card/50">
-        <div className="container mx-auto px-4">
-          <SectionHeading title="Our Services" subtitle="Premium photography tailored to your vision." crown />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
-            {serviceSnap.map((s, i) => (
-              <motion.div
-                key={s.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="glass rounded-lg p-5 text-center group hover:border-gold/30 hover:gold-glow transition-all duration-500 cursor-pointer"
-              >
-                <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-gold/20 transition-colors">
-                  <s.icon className="w-6 h-6 text-gold" />
-                </div>
-                <h4 className="font-serif text-sm font-bold">{s.title}</h4>
-                <p className="text-xs text-muted-foreground mt-1">{s.desc}</p>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.35 }}
+            variants={fadeSlideRight}
+            className="neon-card overflow-hidden rounded-2xl"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&q=80"
+              alt="Creative team planning premium brand visuals"
+              loading="lazy"
+              decoding="async"
+              className="h-full min-h-[300px] w-full object-cover"
+            />
+          </motion.div>
+        </SiteContainer>
+      </SectionBlock>
+
+      <SectionBlock id="solution" tone="alt">
+        <SiteContainer className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.35 }}
+            variants={staggerContainer}
+            className="grid gap-4"
+          >
+            <motion.div variants={fadeSlideUp} className="neon-card rounded-2xl p-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-secondary">Performance Snapshot</p>
+              <p className="mt-2 text-3xl font-extrabold text-primary">3x Faster</p>
+              <p className="mt-2 text-sm text-foreground/75">Delivery cadence for fast-moving campaigns.</p>
+            </motion.div>
+            <div className="grid grid-cols-2 gap-4">
+              <motion.div variants={fadeSlideUp} className="neon-card rounded-xl p-5">
+                <p className="text-2xl font-bold text-secondary">48h</p>
+                <p className="mt-1 text-xs text-foreground/70">First shortlist</p>
               </motion.div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Button asChild variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
-              <Link to="/services">View All Services <ChevronRight className="w-4 h-4 ml-1" /></Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+              <motion.div variants={fadeSlideUp} className="neon-card rounded-xl p-5">
+                <p className="text-2xl font-bold text-accent">100%</p>
+                <p className="mt-1 text-xs text-foreground/70">Brand consistency</p>
+              </motion.div>
+            </div>
+          </motion.div>
 
-      {/* ═══ PORTFOLIO HIGHLIGHTS ═══ */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <SectionHeading title="Our Work" subtitle="A curated showcase of our finest captures." />
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {portfolioHighlights.map((p, i) => (
-              <motion.div
-                key={p.title}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className={`group relative overflow-hidden rounded-lg cursor-pointer ${
-                  i === 0 ? "md:row-span-2 md:aspect-auto aspect-square" : "aspect-[4/3]"
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp}>
+            <h2 className="text-3xl font-extrabold leading-tight md:text-5xl">
+              A complete <span className="neon-gradient-text">growth-aligned solution</span>.
+            </h2>
+            <p className="mt-4 text-sm text-foreground/82 md:text-base">
+              We blend creative direction, production speed, and conversion psychology to make your brand stand out and sell better.
+            </p>
+            <div className="mt-6 grid gap-4">
+              {solutionCards.map((card) => (
+                <article key={card.title} className="neon-card rounded-xl border-l-2 border-accent p-5">
+                  <h3 className="text-lg font-bold">{card.title}</h3>
+                  <p className="mt-1.5 text-sm text-foreground/75">{card.body}</p>
+                </article>
+              ))}
+            </div>
+          </motion.div>
+        </SiteContainer>
+      </SectionBlock>
+
+      <SectionBlock tone="base">
+        <SiteContainer>
+          <motion.header initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp} className="mx-auto max-w-3xl text-center">
+            <h2 className="text-3xl font-extrabold md:text-5xl">
+              Pricing that scales with <span className="neon-gradient-text">your growth stage</span>.
+            </h2>
+            <p className="mt-4 text-sm text-foreground/78 md:text-base">
+              Transparent plans with premium execution quality and rapid delivery.
+            </p>
+          </motion.header>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.25 }}
+            variants={staggerContainer}
+            className="mt-8 grid gap-6 md:grid-cols-3"
+          >
+            {plans.map((plan) => (
+              <motion.article
+                key={plan.id}
+                variants={fadeSlideUp}
+                className={`neon-card flex h-full flex-col rounded-2xl p-6 ${
+                  plan.featured ? "border-primary shadow-[0_0_26px_rgba(108,92,231,0.38)]" : ""
                 }`}
               >
-                <img
-                  src={p.image}
-                  alt={p.title}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-4">
-                  <span className="text-xs text-gold font-semibold uppercase tracking-wider">{p.cat}</span>
-                  <h3 className="font-serif text-lg font-bold">{p.title}</h3>
-                </div>
-              </motion.div>
+                {plan.featured && (
+                  <span className="inline-flex rounded-full border border-primary/60 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                    Most Popular
+                  </span>
+                )}
+                <h3 className="mt-4 text-2xl font-bold">{plan.name}</h3>
+                <p className="mt-2 text-4xl font-extrabold text-secondary">{plan.priceLabel}</p>
+                <p className="mt-3 text-sm text-foreground/75">{plan.pitch}</p>
+                <ul className="mt-5 space-y-2.5">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm text-foreground/85">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild size="lg" className="neon-btn-primary mt-6 w-full">
+                  <Link to="/booking">Choose Plan</Link>
+                </Button>
+              </motion.article>
             ))}
-          </div>
-          <div className="text-center mt-8">
-            <Button asChild variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
-              <Link to="/portfolio">View Full Portfolio <ChevronRight className="w-4 h-4 ml-1" /></Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ PACKAGES ═══ */}
-      {packages.length > 0 && (
-        <section className="py-16 md:py-20 bg-card/50">
-          <div className="container mx-auto px-4">
-            <SectionHeading title="Our Packages" subtitle="Choose the perfect plan for your special occasion." crown />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {packages.map((pkg, i) => (
-                <PackageCard
-                  key={pkg.id}
-                  name={pkg.name}
-                  price={pkg.price}
-                  tier={pkg.tier}
-                  deliverables={Array.isArray(pkg.deliverables) ? pkg.deliverables : []}
-                  isPopular={pkg.isPopular}
-                  index={i}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══ PROCESS TIMELINE ═══ */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <SectionHeading title="How It Works" subtitle="From enquiry to delivery — a seamless experience." />
-          <div className="max-w-4xl mx-auto">
-            <ProcessTimeline />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ TESTIMONIALS ═══ */}
-      {testimonials.length > 0 && (
-        <section className="py-16 md:py-20 bg-card/50">
-          <div className="container mx-auto px-4">
-            <SectionHeading title="Client Stories" subtitle="Hear from those who trusted us with their moments." crown />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {testimonials.map((t, i) => (
-                <TestimonialCard key={t.id} name={t.clientName} role={t.clientRole} review={t.review} rating={t.rating} index={i} />
-              ))}
-            </div>
-            <div className="text-center mt-8">
-              <Button asChild variant="outline" className="border-gold/30 text-gold hover:bg-gold/10">
-                <Link to="/testimonials">Read All Reviews <ChevronRight className="w-4 h-4 ml-1" /></Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══ ABOUT TEASER ═══ */}
-      <section className="py-20 md:py-28">
-        <div className="container mx-auto px-4">
-          <SectionHeading title="Our Story" subtitle="A legacy of capturing life's most precious moments with an artistic royal touch." />
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-3xl mx-auto text-center"
-          >
-            <p className="text-muted-foreground leading-relaxed text-lg mb-8">
-              For over a decade, Royal Lens Studio has been the premier destination for those who seek
-              photography that transcends the ordinary. Our team of award-winning photographers combines
-              artistic vision with technical mastery to create images that are nothing short of extraordinary.
-            </p>
-            <Button asChild variant="outline" className="border-gold/50 text-gold hover:bg-gold/10">
-              <Link to="/about">
-                <Sparkles className="w-4 h-4 mr-2" /> Discover Our Journey
-              </Link>
-            </Button>
           </motion.div>
-        </div>
-      </section>
+        </SiteContainer>
+      </SectionBlock>
 
-      {/* ═══ CONTACT CTA ═══ */}
-      <section className="py-16 md:py-20 royal-gradient">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-serif text-3xl md:text-5xl font-bold mb-4">
-              Let's Create Something <span className="text-gold">Beautiful</span>
+      <SectionBlock tone="alt" compact>
+        <SiteContainer narrow>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp} className="text-center">
+            <h2 className="text-3xl font-extrabold md:text-5xl">
+              Ready for a <span className="neon-gradient-text">high-conversion launch</span>?
             </h2>
-            <p className="text-foreground/70 text-lg mb-8 max-w-xl mx-auto">
-              Get in touch today and let's plan your perfect shoot.
+            <p className="mt-4 text-sm text-foreground/82 md:text-base">
+              We will align your brand visuals, landing assets, and shoot execution to perform in real campaigns.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-gold text-background hover:bg-gold-light font-semibold text-base px-8">
-                <Link to="/contact">Get in Touch <ChevronRight className="w-4 h-4 ml-1" /></Link>
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Button asChild size="lg" className="neon-btn-primary w-full px-8 sm:w-auto">
+                <Link to="/contact">Start Project</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-gold/50 text-gold hover:bg-gold/10 font-semibold text-base px-8">
-                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp Us
-                </a>
+              <Button asChild size="lg" variant="outline" className="neon-btn-outline w-full px-8 sm:w-auto">
+                <Link to="/services">View Services</Link>
               </Button>
             </div>
           </motion.div>
-        </div>
-      </section>
+        </SiteContainer>
+      </SectionBlock>
     </main>
   );
 };

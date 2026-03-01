@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+﻿import { motion } from "framer-motion";
+import { Quote, Star } from "lucide-react";
+import { fadeSlideUp } from "@/lib/motion";
 
 interface TestimonialCardProps {
   name: string;
@@ -10,33 +11,34 @@ interface TestimonialCardProps {
 }
 
 const getInitials = (name: string) =>
-  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
-const TestimonialCard = ({ name, role, review, rating, index }: TestimonialCardProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay: index * 0.1 }}
-    className="glass rounded-lg p-6 flex flex-col"
-  >
-    <Quote className="w-6 h-6 text-gold/30 mb-3" />
-    <p className="text-foreground/80 text-sm leading-relaxed flex-1 italic">"{review}"</p>
-    <div className="flex items-center gap-1 mt-4 mb-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className={`w-3.5 h-3.5 ${i < rating ? "text-gold fill-gold" : "text-foreground/20"}`} />
+const TestimonialCard = ({ name, role, review, rating }: TestimonialCardProps) => (
+  <motion.article variants={fadeSlideUp} className="neon-card flex h-full flex-col rounded-xl p-5 md:p-6">
+    <Quote className="mb-3 h-5 w-5 text-primary/70" />
+    <p className="flex-1 text-sm leading-relaxed text-foreground/82">"{review}"</p>
+
+    <div className="mt-4 flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <Star key={idx} className={`h-3.5 w-3.5 ${idx < rating ? "fill-primary text-primary" : "text-foreground/25"}`} />
       ))}
     </div>
-    <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gold/40 to-gold/10 flex items-center justify-center text-xs font-bold text-gold">
+
+    <div className="mt-4 flex items-center gap-3">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
         {getInitials(name)}
       </div>
       <div>
         <p className="text-sm font-semibold">{name}</p>
-        {role && <p className="text-xs text-muted-foreground">{role}</p>}
+        {role && <p className="text-xs text-foreground/65">{role}</p>}
       </div>
     </div>
-  </motion.div>
+  </motion.article>
 );
 
 export default TestimonialCard;

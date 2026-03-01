@@ -13,11 +13,13 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
@@ -33,29 +35,58 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String token = readTokenFromCookie(request);
+    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+      String bearerToken = readTokenFromAuthorizationHeader(request);
+      String cookieToken = readTokenFromCookie(request);
 
-    if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      try {
-        if (jwtService.isTokenValid(token)) {
-          Long userId = jwtService.extractUserId(token);
-          User user = userService.findById(userId).orElse(null);
-          if (user != null) {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                user,
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-            );
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(auth);
-          }
-        }
-      } catch (JwtException | IllegalArgumentException ignored) {
-        SecurityContextHolder.clearContext();
+      boolean authenticated = tryAuthenticate(bearerToken, request);
+      if (!authenticated) {
+        tryAuthenticate(cookieToken, request);
       }
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  private boolean tryAuthenticate(String token, HttpServletRequest request) {
+    if (!StringUtils.hasText(token)) {
+      return false;
+    }
+
+    try {
+      if (!jwtService.isTokenValid(token)) {
+        return false;
+      }
+
+      Long userId = jwtService.extractUserId(token);
+      User user = userService.findById(userId).orElse(null);
+      if (user == null) {
+        return false;
+      }
+
+      UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+          user,
+          null,
+          List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+      );
+      auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+      SecurityContextHolder.getContext().setAuthentication(auth);
+      return true;
+    } catch (JwtException | IllegalArgumentException ignored) {
+      SecurityContextHolder.clearContext();
+      return false;
+    }
+  }
+
+  private String readTokenFromAuthorizationHeader(HttpServletRequest request) {
+    String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+    if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+      String bearerToken = authHeader.substring(7).trim();
+      if (StringUtils.hasText(bearerToken)) {
+        return bearerToken;
+      }
+    }
+    return null;
   }
 
   private String readTokenFromCookie(HttpServletRequest request) {

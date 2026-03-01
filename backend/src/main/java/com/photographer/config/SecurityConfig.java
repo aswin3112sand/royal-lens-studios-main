@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,6 +36,7 @@ public class SecurityConfig {
           new ObjectMapper().writeValue(response.getOutputStream(), Map.of("message", "Unauthorized"));
         }))
         .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .requestMatchers(
                 "/",
                 "/index.html",
@@ -44,11 +46,13 @@ public class SecurityConfig {
                 "/android-chrome-192x192.png",
                 "/android-chrome-512x512.png",
                 "/apple-touch-icon.png",
-                "/api/auth/**",
+                "/api/auth/login",
+                "/api/auth/register",
                 "/api/public/**",
                 "/api/contact-messages",
                 "/actuator/health")
             .permitAll()
+            .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
             .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "STAFF")
             .requestMatchers("/api/bookings/**").authenticated()
             .anyRequest().permitAll())

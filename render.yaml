@@ -4,6 +4,7 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
+    maxShutdownDelaySeconds: 45
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -19,6 +20,10 @@ services:
         value: update
       - key: SPRING_FLYWAY_ENABLED
         value: false
+      - key: APP_FORCE_H2_FALLBACK
+        value: false
+      - key: APP_AUTO_H2_FALLBACK
+        value: true
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRATION_MS

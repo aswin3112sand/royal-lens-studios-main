@@ -1,28 +1,30 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { fadeSlideUp } from "@/lib/motion";
 
 interface SectionHeadingProps {
   title: string;
   subtitle?: string;
-  gold?: boolean;
+  highlight?: boolean;
   crown?: boolean;
+  className?: string;
 }
 
-const SectionHeading = ({ title, subtitle, gold = true, crown = false }: SectionHeadingProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.6 }}
-    className="text-center mb-12 md:mb-16"
+const SectionHeading = ({ title, subtitle, highlight = true, crown = false, className }: SectionHeadingProps) => (
+  <motion.header
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true, amount: 0.35 }}
+    variants={fadeSlideUp}
+    className={cn("mx-auto mb-8 max-w-3xl text-center md:mb-12", className)}
   >
-    {crown && <Crown className="w-8 h-8 text-gold mx-auto mb-3" />}
-    <h2 className="font-serif text-3xl md:text-5xl font-bold mb-4">
-      {gold ? <span className="text-gold">{title}</span> : title}
+    {crown && <Crown className="mx-auto mb-3 h-7 w-7 text-primary" />}
+    <h2 className="text-3xl font-extrabold md:text-5xl">
+      {highlight ? <span className="neon-gradient-text">{title}</span> : title}
     </h2>
-    {subtitle && <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{subtitle}</p>}
-    <div className="mt-4 mx-auto w-20 h-0.5 bg-gold/50 rounded-full" />
-  </motion.div>
+    {subtitle && <p className="mx-auto mt-4 max-w-2xl text-sm text-foreground/78 md:text-base">{subtitle}</p>}
+  </motion.header>
 );
 
 export default SectionHeading;
