@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Crown, User, LogOut, Shield, MessageCircle, Loader2 } from "lucide-react";
+import { Crown, Loader2, LogOut, Menu, MessageCircle, Shield, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
@@ -23,12 +23,14 @@ const Navbar = () => {
   const { user, isAdminOrStaff, logout, loading } = useAdminAuth();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    window.addEventListener("scroll", onScroll);
+    const onScroll = () => setScrolled(window.scrollY > 18);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const closeMobile = () => setMobileOpen(false);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -38,29 +40,33 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
-        scrolled ? "glass-strong border-primary/35" : "border-transparent bg-transparent"
+        scrolled ? "glass-strong border-border/90" : "border-transparent bg-transparent"
       }`}
     >
       <div className="container mx-auto flex h-[var(--nav-h-mobile)] items-center justify-between md:h-[var(--nav-h-desktop)]">
-        <Link to="/" className="ring-focus flex items-center gap-2 rounded-md">
+        <Link to="/" className="ring-focus inline-flex items-center gap-2 rounded-md">
           <Crown className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold md:text-2xl">
+          <span className="text-lg font-semibold tracking-wide text-foreground md:text-xl">
             Royal <span className="text-primary">Lens</span>
           </span>
         </Link>
 
         <div className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`ring-focus rounded-md px-1 text-sm font-medium transition-colors ${
-                location.pathname === link.to ? "text-primary" : "text-foreground/80 hover:text-secondary"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = location.pathname === link.to;
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                aria-current={isActive ? "page" : undefined}
+                className={`nav-link-item ring-focus rounded-md px-1 py-1 text-sm font-medium transition-colors ${
+                  isActive ? "is-active text-primary" : "text-foreground/80 hover:text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -69,7 +75,7 @@ const Navbar = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat on WhatsApp"
-            className="ring-focus inline-flex h-9 w-9 items-center justify-center rounded-full border border-secondary/30 text-secondary transition-colors hover:text-primary"
+            className="ring-focus inline-flex h-10 w-10 items-center justify-center rounded-full border border-primary/50 text-primary transition-colors hover:border-accent hover:text-accent"
           >
             <MessageCircle className="h-4 w-4" />
           </a>
@@ -81,50 +87,57 @@ const Navbar = () => {
           ) : user ? (
             <>
               {isAdminOrStaff && (
-                <Button variant="ghost" size="sm" className="text-primary" onClick={() => navigate("/admin")}>
+                <Button variant="ghost" size="sm" className="text-primary hover:text-accent" onClick={() => navigate("/admin")}>
                   <Shield className="mr-1 h-4 w-4" /> Admin
                 </Button>
               )}
-              <Button variant="ghost" size="sm" onClick={() => navigate("/booking")}>
+              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={() => navigate("/booking")}>
                 <User className="mr-1 h-4 w-4" /> My Bookings
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" /> Logout
               </Button>
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>Login</Button>
-              <Button size="sm" className="neon-btn-primary" onClick={() => navigate("/booking")}>Book Now</Button>
+              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={() => navigate("/auth")}>
+                Login
+              </Button>
+              <Button size="sm" className="neon-btn-primary" onClick={() => navigate("/booking")}>
+                Book Now
+              </Button>
             </>
           )}
         </div>
 
         <button
           className="ring-focus inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground md:hidden"
-          onClick={() => setMobileOpen((v) => !v)}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMobileOpen((value) => !value)}
+          aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {mobileOpen && (
-        <div className="glass-strong border-t border-primary/30 md:hidden">
+        <div className="glass-strong border-t border-border md:hidden">
           <div className="container mx-auto py-4">
             <div className="grid gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={closeMobile}
-                  className={`ring-focus rounded-lg px-3 py-2.5 text-sm font-medium ${
-                    location.pathname === link.to ? "bg-primary/15 text-primary" : "text-foreground/85"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.to;
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`ring-focus rounded-lg px-3 py-2.5 text-sm font-medium ${
+                      isActive ? "bg-primary/16 text-primary" : "text-foreground/88 hover:bg-white/[0.04]"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="my-3 h-px bg-border" />
@@ -133,11 +146,8 @@ const Navbar = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="justify-start"
-                onClick={() => {
-                  window.open(`https://wa.me/${WHATSAPP_NUMBER}`, "_blank", "noopener,noreferrer");
-                  closeMobile();
-                }}
+                className="neon-btn-outline justify-start"
+                onClick={() => window.open(`https://wa.me/${WHATSAPP_NUMBER}`, "_blank", "noopener,noreferrer")}
               >
                 <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
               </Button>
@@ -148,24 +158,24 @@ const Navbar = () => {
                 </Button>
               ) : user ? (
                 <>
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => navigate("/booking")}>
                     <User className="mr-2 h-4 w-4" /> My Bookings
                   </Button>
                   {isAdminOrStaff && (
-                    <Button variant="ghost" size="sm" className="justify-start text-primary" onClick={() => { navigate("/admin"); closeMobile(); }}>
+                    <Button variant="ghost" size="sm" className="justify-start text-primary hover:text-accent" onClick={() => navigate("/admin")}>
                       <Shield className="mr-2 h-4 w-4" /> Admin
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={async () => { await handleLogout(); closeMobile(); }}>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" /> Logout
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); closeMobile(); }}>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => navigate("/auth")}>
                     Login
                   </Button>
-                  <Button size="sm" className="neon-btn-primary justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                  <Button size="sm" className="neon-btn-primary justify-start" onClick={() => navigate("/booking")}>
                     Book Now
                   </Button>
                 </>

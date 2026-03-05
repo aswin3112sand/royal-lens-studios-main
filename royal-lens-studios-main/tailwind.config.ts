@@ -20,8 +20,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ["Poppins", "Inter", "system-ui", "sans-serif"],
-        sans: ["Inter", "Poppins", "system-ui", "sans-serif"],
+        serif: ["Cormorant Garamond", "Times New Roman", "Georgia", "serif"],
+        sans: ["Manrope", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

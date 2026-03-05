@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Music2, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PackageItem } from "@/lib/services/types";
 import SiteContainer from "@/components/layout/SiteContainer";
@@ -127,14 +127,14 @@ const Index = () => {
       <section id="home" className="relative overflow-hidden pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
         <div className="absolute inset-0 neon-hero-bg" />
         <HeroCameraBackdrop />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,15,26,0.45),rgba(15,15,26,0.84))]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,46,99,0.16),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(20,20,20,0.38),rgba(20,20,20,0.82))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(218,165,32,0.16),transparent_45%)]" />
 
         <SiteContainer className="home-hero-shell relative z-10">
           <div className="home-hero-copy mx-auto w-full max-w-5xl text-center md:mx-0 md:text-left">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-background/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Neon Dark Growth
+              Cinematic Dark Signature
             </p>
 
             <h1 className="mt-6 text-[clamp(2.35rem,11vw,3.65rem)] font-extrabold leading-[1.05] sm:text-5xl md:text-7xl">
@@ -169,14 +169,6 @@ const Index = () => {
           </div>
         </SiteContainer>
 
-        <a
-          href="#solution"
-          aria-label="Jump to solution section"
-          title="Jump to solution"
-          className="ring-focus fixed bottom-4 right-4 z-40 inline-flex h-11 w-11 items-center justify-center rounded-full border border-secondary/60 bg-background/70 text-secondary shadow-[0_0_18px_rgba(0,245,255,0.45)] backdrop-blur-md transition-transform duration-200 hover:scale-105 md:bottom-6 md:right-6"
-        >
-          <Music2 className="h-5 w-5" />
-        </a>
       </section>
 
       <SectionBlock tone="base">
@@ -203,9 +195,13 @@ const Index = () => {
           >
             <img
               src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&q=80"
+              srcSet="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=640&q=80&auto=format 640w, https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=960&q=80&auto=format 960w, https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&q=80&auto=format 1200w"
+              sizes="(max-width: 1024px) 100vw, 50vw"
               alt="Creative team planning premium brand visuals"
               loading="lazy"
               decoding="async"
+              width={1200}
+              height={900}
               className="h-full min-h-[300px] w-full object-cover"
             />
           </div>

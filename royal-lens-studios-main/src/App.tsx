@@ -21,6 +21,7 @@ const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
 const AdminPackages = lazy(() => import("./pages/admin/AdminPackages"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const Footer = lazy(() => import("@/components/Footer"));
+const MusicFloat = lazy(() => import("@/components/MusicFloat"));
 const PostRenderWarmup = lazy(() => import("@/components/PostRenderWarmup"));
 const Toaster = lazy(async () => {
   const mod = await import("@/components/ui/toaster");
@@ -33,6 +34,9 @@ const PublicLayout = ({ children }: { children: React.ReactNode }) => (
     {children}
     <Suspense fallback={<div className="h-24" />}>
       <Footer />
+    </Suspense>
+    <Suspense fallback={null}>
+      <MusicFloat />
     </Suspense>
   </div>
 );

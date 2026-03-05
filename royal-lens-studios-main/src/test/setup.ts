@@ -49,3 +49,16 @@ if (!("IntersectionObserver" in window)) {
     value: MockIntersectionObserver,
   });
 }
+
+const idleWindow = window as Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  cancelIdleCallback?: (id: number) => void;
+};
+
+if (typeof idleWindow.requestIdleCallback !== "function") {
+  idleWindow.requestIdleCallback = (callback) => window.setTimeout(callback, 0);
+}
+
+if (typeof idleWindow.cancelIdleCallback !== "function") {
+  idleWindow.cancelIdleCallback = (id) => window.clearTimeout(id);
+}
