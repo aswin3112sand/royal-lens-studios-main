@@ -1,7 +1,4 @@
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
-import { authApi } from "@/lib/services/authApi";
-import { extractApiErrorMessage } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
 import type { AuthUser } from "@/lib/services/types";
 
 interface AdminAuthContext {
@@ -31,7 +28,6 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
   const [isAdmin, setIsAdmin] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const applyUserState = (authUser: AuthUser | null) => {
     setUser(authUser);
@@ -39,25 +35,34 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
     setIsStaff(authUser?.role === "STAFF");
   };
 
+  const shouldRefreshAuth = () => {
+    const hasConfiguredApiBase = Boolean(import.meta.env.VITE_API_BASE_URL?.trim());
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    return hasConfiguredApiBase || import.meta.env.DEV || !isLocalHost;
+  };
+
   const refreshAuth = useCallback(async () => {
+    if (!shouldRefreshAuth()) {
+      applyUserState(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
+      const { authApi } = await import("@/lib/services/authApi");
       const authUser = await authApi.me();
       applyUserState(authUser);
-    } catch (error) {
+    } catch {
       applyUserState(null);
-      toast({
-        title: "Authentication Error",
-        description: extractApiErrorMessage(error, "Unable to verify login session."),
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
+      const { authApi } = await import("@/lib/services/authApi");
       await authApi.logout();
     } finally {
       applyUserState(null);

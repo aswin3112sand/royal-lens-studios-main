@@ -1,6 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Crown, User, LogOut, Shield, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -37,10 +36,7 @@ const Navbar = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ y: -24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+    <nav
       className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
         scrolled ? "glass-strong border-primary/35" : "border-transparent bg-transparent"
       }`}
@@ -113,80 +109,72 @@ const Navbar = () => {
         </button>
       </div>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="glass-strong border-t border-primary/30 md:hidden"
-          >
-            <div className="container mx-auto py-4">
-              <div className="grid gap-2">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    onClick={closeMobile}
-                    className={`ring-focus rounded-lg px-3 py-2.5 text-sm font-medium ${
-                      location.pathname === link.to ? "bg-primary/15 text-primary" : "text-foreground/85"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="my-3 h-px bg-border" />
-
-              <div className="grid gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start"
-                  onClick={() => {
-                    window.open(`https://wa.me/${WHATSAPP_NUMBER}`, "_blank", "noopener,noreferrer");
-                    closeMobile();
-                  }}
+      {mobileOpen && (
+        <div className="glass-strong border-t border-primary/30 md:hidden">
+          <div className="container mx-auto py-4">
+            <div className="grid gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={closeMobile}
+                  className={`ring-focus rounded-lg px-3 py-2.5 text-sm font-medium ${
+                    location.pathname === link.to ? "bg-primary/15 text-primary" : "text-foreground/85"
+                  }`}
                 >
-                  <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
-                </Button>
-
-                {loading ? (
-                  <Button variant="ghost" size="sm" className="justify-start text-foreground/75">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking account...
-                  </Button>
-                ) : user ? (
-                  <>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
-                      <User className="mr-2 h-4 w-4" /> My Bookings
-                    </Button>
-                    {isAdminOrStaff && (
-                      <Button variant="ghost" size="sm" className="justify-start text-primary" onClick={() => { navigate("/admin"); closeMobile(); }}>
-                        <Shield className="mr-2 h-4 w-4" /> Admin
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={async () => { await handleLogout(); closeMobile(); }}>
-                      <LogOut className="mr-2 h-4 w-4" /> Logout
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); closeMobile(); }}>
-                      Login
-                    </Button>
-                    <Button size="sm" className="neon-btn-primary justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
-                      Book Now
-                    </Button>
-                  </>
-                )}
-              </div>
+                  {link.label}
+                </Link>
+              ))}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+
+            <div className="my-3 h-px bg-border" />
+
+            <div className="grid gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-start"
+                onClick={() => {
+                  window.open(`https://wa.me/${WHATSAPP_NUMBER}`, "_blank", "noopener,noreferrer");
+                  closeMobile();
+                }}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
+              </Button>
+
+              {loading ? (
+                <Button variant="ghost" size="sm" className="justify-start text-foreground/75">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking account...
+                </Button>
+              ) : user ? (
+                <>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                    <User className="mr-2 h-4 w-4" /> My Bookings
+                  </Button>
+                  {isAdminOrStaff && (
+                    <Button variant="ghost" size="sm" className="justify-start text-primary" onClick={() => { navigate("/admin"); closeMobile(); }}>
+                      <Shield className="mr-2 h-4 w-4" /> Admin
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={async () => { await handleLogout(); closeMobile(); }}>
+                    <LogOut className="mr-2 h-4 w-4" /> Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => { navigate("/auth"); closeMobile(); }}>
+                    Login
+                  </Button>
+                  <Button size="sm" className="neon-btn-primary justify-start" onClick={() => { navigate("/booking"); closeMobile(); }}>
+                    Book Now
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 

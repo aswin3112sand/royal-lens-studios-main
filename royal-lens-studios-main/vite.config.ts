@@ -29,15 +29,4 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["axios", "@tanstack/react-query"],
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "motion-vendor": ["framer-motion"],
-          "query-vendor": ["@tanstack/react-query", "axios"],
-        },
-      },
-    },
-  },
 }));

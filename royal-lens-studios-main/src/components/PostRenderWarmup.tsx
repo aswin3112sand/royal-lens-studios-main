@@ -1,7 +1,4 @@
 import { useEffect } from "react";
-import aboutHeroVideo from "@/assets/about-hero-video.mp4";
-import heroVideo from "@/assets/hero-video.mp4";
-import servicesHeroVideo from "@/assets/services-hero-video.mp4";
 
 const routeWarmups = [
   () => import("@/pages/Portfolio"),
@@ -9,19 +6,8 @@ const routeWarmups = [
   () => import("@/pages/About"),
   () => import("@/pages/Testimonials"),
   () => import("@/pages/Contact"),
-  () => import("@/pages/Auth"),
   () => import("@/pages/Booking"),
-  () => import("@/pages/admin/AdminLayout"),
-  () => import("@/pages/admin/AdminDashboard"),
-  () => import("@/pages/admin/AdminBookings"),
-  () => import("@/pages/admin/AdminLeads"),
-  () => import("@/pages/admin/AdminClients"),
-  () => import("@/pages/admin/AdminProjects"),
-  () => import("@/pages/admin/AdminPackages"),
-  () => import("@/pages/admin/AdminSettings"),
 ];
-
-const mediaWarmups = [heroVideo, aboutHeroVideo, servicesHeroVideo];
 
 const getConnectionInfo = () => {
   const nav = navigator as Navigator & {
@@ -33,22 +19,11 @@ const getConnectionInfo = () => {
   return nav.connection;
 };
 
-const canWarmupMedia = () => {
+const canWarmupRoutes = () => {
   const connection = getConnectionInfo();
   if (!connection) return true;
   if (connection.saveData) return false;
-  return !["slow-2g", "2g"].includes(connection.effectiveType ?? "");
-};
-
-const addPrefetchLink = (href: string, asType: string) => {
-  const selector = `link[rel="prefetch"][href="${href}"]`;
-  if (document.head.querySelector(selector)) return;
-
-  const link = document.createElement("link");
-  link.rel = "prefetch";
-  link.as = asType;
-  link.href = href;
-  document.head.appendChild(link);
+  return !["slow-2g", "2g", "3g"].includes(connection.effectiveType ?? "");
 };
 
 const scheduleWarmup = (task: () => void) => {
@@ -58,25 +33,56 @@ const scheduleWarmup = (task: () => void) => {
   };
 
   if (typeof idleWindow.requestIdleCallback === "function") {
-    const id = idleWindow.requestIdleCallback(task, { timeout: 3000 });
+    const id = idleWindow.requestIdleCallback(task, { timeout: 4000 });
     return () => idleWindow.cancelIdleCallback?.(id);
   }
 
-  const timeoutId = window.setTimeout(task, 1200);
+  const timeoutId = window.setTimeout(task, 2000);
   return () => window.clearTimeout(timeoutId);
+};
+
+const watchForInteraction = (onInteract: () => void) => {
+  let triggered = false;
+  const events: Array<keyof WindowEventMap> = ["pointerdown", "touchstart", "keydown", "scroll"];
+
+  const handler = () => {
+    if (triggered) return;
+    triggered = true;
+    teardown();
+    onInteract();
+  };
+
+  const teardown = () => {
+    events.forEach((event) => {
+      window.removeEventListener(event, handler);
+    });
+    window.clearTimeout(fallbackId);
+  };
+
+  events.forEach((event) => {
+    window.addEventListener(event, handler, { once: true });
+  });
+
+  const fallbackId = window.setTimeout(handler, 20000);
+  return teardown;
 };
 
 const PostRenderWarmup = () => {
   useEffect(() => {
-    const cancel = scheduleWarmup(() => {
-      Promise.allSettled(routeWarmups.map((warmup) => warmup())).catch(() => {});
+    let cancelIdleTask: (() => void) | undefined;
 
-      if (canWarmupMedia()) {
-        mediaWarmups.forEach((mediaUrl) => addPrefetchLink(mediaUrl, "video"));
-      }
+    const stopWatching = watchForInteraction(() => {
+      if (!canWarmupRoutes()) return;
+
+      cancelIdleTask = scheduleWarmup(() => {
+        Promise.allSettled(routeWarmups.map((warmup) => warmup())).catch(() => {});
+      });
     });
 
-    return cancel;
+    return () => {
+      stopWatching();
+      cancelIdleTask?.();
+    };
   }, []);
 
   return null;

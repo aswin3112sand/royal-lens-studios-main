@@ -11,14 +11,20 @@ const LazyVideo = ({
   autoPlay,
   preload,
   onError,
+  onCanPlay,
   poster,
   style,
+  muted,
+  playsInline,
   ...props
 }: LazyVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [inView, setInView] = useState(false);
   const [deferredReady, setDeferredReady] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const shouldAutoPlay = Boolean(autoPlay);
+  const shouldMute = muted ?? shouldAutoPlay;
+  const shouldPlayInline = playsInline ?? shouldAutoPlay;
 
   useEffect(() => {
     const node = videoRef.current;
@@ -55,15 +61,59 @@ const LazyVideo = ({
 
   const shouldLoad = inView && deferredReady && !hasError;
 
+  const enforceMobilePlaybackAttrs = (node: HTMLVideoElement) => {
+    if (shouldPlayInline) {
+      node.setAttribute("playsinline", "true");
+      node.setAttribute("webkit-playsinline", "true");
+    }
+    if (shouldMute) {
+      node.muted = true;
+      node.defaultMuted = true;
+    }
+  };
+
   useEffect(() => {
-    if (!shouldLoad || !autoPlay || !videoRef.current || hasError) return;
-    videoRef.current.play().catch(() => {});
-  }, [shouldLoad, autoPlay, hasError]);
+    const node = videoRef.current;
+    if (!shouldLoad || !node || hasError) return;
+
+    enforceMobilePlaybackAttrs(node);
+
+    if (!shouldAutoPlay) return;
+
+    const attemptPlay = () => {
+      node.play().catch(() => {});
+    };
+
+    attemptPlay();
+
+    node.addEventListener("loadeddata", attemptPlay, { once: true });
+    window.addEventListener("pointerdown", attemptPlay, { once: true, passive: true });
+    window.addEventListener("touchstart", attemptPlay, { once: true, passive: true });
+
+    return () => {
+      node.removeEventListener("loadeddata", attemptPlay);
+      window.removeEventListener("pointerdown", attemptPlay);
+      window.removeEventListener("touchstart", attemptPlay);
+    };
+  }, [shouldLoad, shouldAutoPlay, shouldPlayInline, shouldMute, hasError]);
 
   const handleError = (event: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     setHasError(true);
     if (typeof onError === "function") {
       onError(event);
+    }
+  };
+
+  const handleCanPlay = (event: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    if (videoRef.current) {
+      enforceMobilePlaybackAttrs(videoRef.current);
+      if (shouldAutoPlay) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+
+    if (typeof onCanPlay === "function") {
+      onCanPlay(event);
     }
   };
 
@@ -81,9 +131,12 @@ const LazyVideo = ({
     <video
       ref={videoRef}
       {...props}
-      autoPlay={autoPlay && shouldLoad}
+      autoPlay={shouldAutoPlay && shouldLoad}
+      muted={shouldMute}
+      playsInline={shouldPlayInline}
       preload={shouldLoad ? preload ?? "metadata" : "none"}
       onError={handleError}
+      onCanPlay={handleCanPlay}
       poster={poster}
       style={mergedStyle}
       src={shouldLoad ? src : undefined}

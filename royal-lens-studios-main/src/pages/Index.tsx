@@ -1,15 +1,11 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Music2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { publicApi } from "@/lib/services/publicApi";
-import { extractApiErrorMessage } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
 import type { PackageItem } from "@/lib/services/types";
 import SiteContainer from "@/components/layout/SiteContainer";
 import SectionBlock from "@/components/layout/SectionBlock";
-import { fadeSlideLeft, fadeSlideRight, fadeSlideUp, staggerContainer } from "@/lib/motion";
+import HeroCameraBackdrop from "@/components/HeroCameraBackdrop";
 
 interface LandingPlan {
   id: string;
@@ -57,23 +53,56 @@ const solutionCards = [
   { title: "Premium Brand Positioning", body: "Neon-dark visual language crafted for modern high-ticket audiences." },
 ];
 
+const launchSignals = [
+  { label: "Mobile-First Layout", value: "100%" },
+  { label: "Creative Delivery", value: "48h" },
+  { label: "Conversion Focus", value: "High Intent" },
+];
+
 const Index = () => {
   const [apiPackages, setApiPackages] = useState<PackageItem[]>([]);
-  const { toast } = useToast();
 
   useEffect(() => {
-    publicApi
-      .getPackages(3)
-      .then((packagesData) => {
-        setApiPackages(packagesData);
-      })
-      .catch((error) => {
-        toast({
-          title: "Using default pricing",
-          description: extractApiErrorMessage(error, "Live pricing API unavailable. Showing starter pricing."),
-        });
-      });
-  }, [toast]);
+    let cancelled = false;
+    const hasConfiguredApiBase = Boolean(import.meta.env.VITE_API_BASE_URL?.trim());
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const shouldFetchLivePackages = hasConfiguredApiBase || import.meta.env.DEV || !isLocalHost;
+
+    if (!shouldFetchLivePackages) {
+      return;
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    const loadPackages = async () => {
+      try {
+        const { publicApi } = await import("@/lib/services/publicApi");
+        const packagesData = await publicApi.getPackages(3);
+        if (!cancelled && packagesData.length > 0) {
+          setApiPackages(packagesData);
+        }
+      } catch {
+        // Keep local fallback plans when public API is unavailable.
+      }
+    };
+
+    if (typeof idleWindow.requestIdleCallback === "function") {
+      const idleId = idleWindow.requestIdleCallback(loadPackages, { timeout: 4000 });
+      return () => {
+        cancelled = true;
+        idleWindow.cancelIdleCallback?.(idleId);
+      };
+    }
+
+    const timeoutId = window.setTimeout(loadPackages, 1600);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   const plans = useMemo<LandingPlan[]>(() => {
     if (!apiPackages.length) {
@@ -97,11 +126,12 @@ const Index = () => {
     <main>
       <section id="home" className="relative overflow-hidden pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
         <div className="absolute inset-0 neon-hero-bg" />
+        <HeroCameraBackdrop />
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,15,26,0.45),rgba(15,15,26,0.84))]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,46,99,0.16),transparent_45%)]" />
 
         <SiteContainer className="relative z-10 flex min-h-[calc(100svh-var(--nav-h-mobile))] items-center md:min-h-[calc(100svh-var(--nav-h-desktop))]">
-          <motion.div initial="hidden" animate="visible" variants={fadeSlideUp} className="mx-auto max-w-4xl text-center">
+          <div className="mx-auto w-full max-w-5xl text-center md:mx-0 md:text-left">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-background/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Neon Dark Growth
@@ -111,11 +141,11 @@ const Index = () => {
               Build a <span className="neon-gradient-text">Premium Visual Funnel</span> that Converts.
             </h1>
 
-            <p className="mx-auto mt-5 max-w-2xl text-base text-foreground/85 md:text-lg">
+            <p className="mx-auto mt-5 max-w-2xl text-base text-foreground/85 md:mx-0 md:text-lg">
               High-impact visuals, fast production, and a modern growth-ready look that makes your brand feel expensive at first glance.
             </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start">
               <Button asChild size="lg" className="neon-btn-primary w-full px-8 text-base font-semibold sm:w-auto">
                 <Link to="/booking">
                   Book Growth Session <ArrowRight className="h-4 w-4" />
@@ -127,7 +157,16 @@ const Index = () => {
                 </Link>
               </Button>
             </div>
-          </motion.div>
+
+            <div className="mt-10 grid w-full gap-3 sm:grid-cols-3 md:max-w-3xl">
+              {launchSignals.map((signal) => (
+                <article key={signal.label} className="glass rounded-xl px-4 py-3 text-left sm:text-center md:text-left">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/70">{signal.label}</p>
+                  <p className="mt-1 text-lg font-bold text-secondary">{signal.value}</p>
+                </article>
+              ))}
+            </div>
+          </div>
         </SiteContainer>
 
         <a
@@ -142,7 +181,7 @@ const Index = () => {
 
       <SectionBlock tone="base">
         <SiteContainer className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideLeft}>
+          <div>
             <h2 className="text-3xl font-extrabold leading-tight md:text-5xl">
               Stop losing revenue to <span className="neon-gradient-text">weak creative</span>.
             </h2>
@@ -157,13 +196,9 @@ const Index = () => {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.35 }}
-            variants={fadeSlideRight}
+          <div
             className="neon-card overflow-hidden rounded-2xl"
           >
             <img
@@ -173,37 +208,33 @@ const Index = () => {
               decoding="async"
               className="h-full min-h-[300px] w-full object-cover"
             />
-          </motion.div>
+          </div>
         </SiteContainer>
       </SectionBlock>
 
       <SectionBlock id="solution" tone="alt">
         <SiteContainer className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.35 }}
-            variants={staggerContainer}
+          <div
             className="grid gap-4"
           >
-            <motion.div variants={fadeSlideUp} className="neon-card rounded-2xl p-6">
+            <div className="neon-card rounded-2xl p-6">
               <p className="text-xs uppercase tracking-[0.2em] text-secondary">Performance Snapshot</p>
               <p className="mt-2 text-3xl font-extrabold text-primary">3x Faster</p>
               <p className="mt-2 text-sm text-foreground/75">Delivery cadence for fast-moving campaigns.</p>
-            </motion.div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              <motion.div variants={fadeSlideUp} className="neon-card rounded-xl p-5">
+              <div className="neon-card rounded-xl p-5">
                 <p className="text-2xl font-bold text-secondary">48h</p>
                 <p className="mt-1 text-xs text-foreground/70">First shortlist</p>
-              </motion.div>
-              <motion.div variants={fadeSlideUp} className="neon-card rounded-xl p-5">
+              </div>
+              <div className="neon-card rounded-xl p-5">
                 <p className="text-2xl font-bold text-accent">100%</p>
                 <p className="mt-1 text-xs text-foreground/70">Brand consistency</p>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp}>
+          <div>
             <h2 className="text-3xl font-extrabold leading-tight md:text-5xl">
               A complete <span className="neon-gradient-text">growth-aligned solution</span>.
             </h2>
@@ -218,32 +249,27 @@ const Index = () => {
                 </article>
               ))}
             </div>
-          </motion.div>
+          </div>
         </SiteContainer>
       </SectionBlock>
 
       <SectionBlock tone="base">
         <SiteContainer>
-          <motion.header initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp} className="mx-auto max-w-3xl text-center">
+          <header className="mx-auto max-w-3xl text-center">
             <h2 className="text-3xl font-extrabold md:text-5xl">
               Pricing that scales with <span className="neon-gradient-text">your growth stage</span>.
             </h2>
             <p className="mt-4 text-sm text-foreground/78 md:text-base">
               Transparent plans with premium execution quality and rapid delivery.
             </p>
-          </motion.header>
+          </header>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
-            variants={staggerContainer}
+          <div
             className="mt-8 grid gap-6 md:grid-cols-3"
           >
             {plans.map((plan) => (
-              <motion.article
+              <article
                 key={plan.id}
-                variants={fadeSlideUp}
                 className={`neon-card flex h-full flex-col rounded-2xl p-6 ${
                   plan.featured ? "border-primary shadow-[0_0_26px_rgba(108,92,231,0.38)]" : ""
                 }`}
@@ -267,15 +293,15 @@ const Index = () => {
                 <Button asChild size="lg" className="neon-btn-primary mt-6 w-full">
                   <Link to="/booking">Choose Plan</Link>
                 </Button>
-              </motion.article>
+              </article>
             ))}
-          </motion.div>
+          </div>
         </SiteContainer>
       </SectionBlock>
 
       <SectionBlock tone="alt" compact>
         <SiteContainer narrow>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={fadeSlideUp} className="text-center">
+          <div className="text-center">
             <h2 className="text-3xl font-extrabold md:text-5xl">
               Ready for a <span className="neon-gradient-text">high-conversion launch</span>?
             </h2>
@@ -290,7 +316,7 @@ const Index = () => {
                 <Link to="/services">View Services</Link>
               </Button>
             </div>
-          </motion.div>
+          </div>
         </SiteContainer>
       </SectionBlock>
     </main>
