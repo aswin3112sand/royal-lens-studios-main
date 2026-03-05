@@ -130,14 +130,14 @@ const Index = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(15,15,26,0.45),rgba(15,15,26,0.84))]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,46,99,0.16),transparent_45%)]" />
 
-        <SiteContainer className="relative z-10 flex min-h-[calc(100svh-var(--nav-h-mobile))] items-center md:min-h-[calc(100svh-var(--nav-h-desktop))]">
-          <div className="mx-auto w-full max-w-5xl text-center md:mx-0 md:text-left">
+        <SiteContainer className="home-hero-shell relative z-10">
+          <div className="home-hero-copy mx-auto w-full max-w-5xl text-center md:mx-0 md:text-left">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-background/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/90 backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Neon Dark Growth
             </p>
 
-            <h1 className="mt-6 text-4xl font-extrabold leading-tight sm:text-5xl md:text-7xl">
+            <h1 className="mt-6 text-[clamp(2.35rem,11vw,3.65rem)] font-extrabold leading-[1.05] sm:text-5xl md:text-7xl">
               Build a <span className="neon-gradient-text">Premium Visual Funnel</span> that Converts.
             </h1>
 
@@ -158,9 +158,9 @@ const Index = () => {
               </Button>
             </div>
 
-            <div className="mt-10 grid w-full gap-3 sm:grid-cols-3 md:max-w-3xl">
+            <div className="mx-auto mt-10 grid w-full gap-3 sm:grid-cols-3 md:mx-0 md:max-w-3xl">
               {launchSignals.map((signal) => (
-                <article key={signal.label} className="glass rounded-xl px-4 py-3 text-left sm:text-center md:text-left">
+                <article key={signal.label} className="glass rounded-xl px-4 py-3 text-center md:text-left">
                   <p className="text-[11px] uppercase tracking-[0.16em] text-foreground/70">{signal.label}</p>
                   <p className="mt-1 text-lg font-bold text-secondary">{signal.value}</p>
                 </article>

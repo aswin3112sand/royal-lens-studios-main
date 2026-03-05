@@ -4,9 +4,6 @@ const routeWarmups = [
   () => import("@/pages/Portfolio"),
   () => import("@/pages/Services"),
   () => import("@/pages/About"),
-  () => import("@/pages/Testimonials"),
-  () => import("@/pages/Contact"),
-  () => import("@/pages/Booking"),
 ];
 
 const getConnectionInfo = () => {
@@ -20,6 +17,15 @@ const getConnectionInfo = () => {
 };
 
 const canWarmupRoutes = () => {
+  if (window.matchMedia("(max-width: 767px)").matches) {
+    return false;
+  }
+
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (typeof memory === "number" && memory <= 4) {
+    return false;
+  }
+
   const connection = getConnectionInfo();
   if (!connection) return true;
   if (connection.saveData) return false;
@@ -37,7 +43,7 @@ const scheduleWarmup = (task: () => void) => {
     return () => idleWindow.cancelIdleCallback?.(id);
   }
 
-  const timeoutId = window.setTimeout(task, 2000);
+  const timeoutId = window.setTimeout(task, 5000);
   return () => window.clearTimeout(timeoutId);
 };
 
@@ -63,8 +69,19 @@ const watchForInteraction = (onInteract: () => void) => {
     window.addEventListener(event, handler, { once: true });
   });
 
-  const fallbackId = window.setTimeout(handler, 20000);
+  const fallbackId = window.setTimeout(handler, 30000);
   return teardown;
+};
+
+const warmRoutesProgressively = async () => {
+  for (const warmup of routeWarmups) {
+    try {
+      await warmup();
+    } catch {
+      // Ignore warmup failures and continue to next route.
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+  }
 };
 
 const PostRenderWarmup = () => {
@@ -75,7 +92,7 @@ const PostRenderWarmup = () => {
       if (!canWarmupRoutes()) return;
 
       cancelIdleTask = scheduleWarmup(() => {
-        Promise.allSettled(routeWarmups.map((warmup) => warmup())).catch(() => {});
+        void warmRoutesProgressively();
       });
     });
 

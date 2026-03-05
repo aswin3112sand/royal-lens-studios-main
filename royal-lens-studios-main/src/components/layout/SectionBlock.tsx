@@ -21,7 +21,7 @@ const SectionBlock = ({ children, className, id, tone = "base", compact = false 
   <section
     id={id}
     className={cn(
-      "relative",
+      "relative section-render-opt",
       toneClassMap[tone],
       compact ? "section-space-compact" : "section-space",
       className,

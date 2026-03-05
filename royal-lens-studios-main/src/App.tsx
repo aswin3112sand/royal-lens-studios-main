@@ -1,11 +1,7 @@
 import { Suspense, lazy } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import PostRenderWarmup from "@/components/PostRenderWarmup";
 
 const Index = lazy(() => import("./pages/Index"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
@@ -24,12 +20,20 @@ const AdminClients = lazy(() => import("./pages/admin/AdminClients"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
 const AdminPackages = lazy(() => import("./pages/admin/AdminPackages"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const Footer = lazy(() => import("@/components/Footer"));
+const PostRenderWarmup = lazy(() => import("@/components/PostRenderWarmup"));
+const Toaster = lazy(async () => {
+  const mod = await import("@/components/ui/toaster");
+  return { default: mod.Toaster };
+});
 
 const PublicLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="review-theme-site">
     <Navbar />
     {children}
-    <Footer />
+    <Suspense fallback={<div className="h-24" />}>
+      <Footer />
+    </Suspense>
   </div>
 );
 
@@ -40,40 +44,42 @@ const RouteFallback = () => (
 );
 
 const App = () => (
-  <TooltipProvider>
-    <AdminAuthProvider>
+  <AdminAuthProvider>
+    <Suspense fallback={null}>
       <Toaster />
-      <BrowserRouter>
+    </Suspense>
+    <BrowserRouter>
+      <Suspense fallback={null}>
         <PostRenderWarmup />
-        <Suspense fallback={<RouteFallback />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
-            <Route path="/portfolio" element={<PublicLayout><Portfolio /></PublicLayout>} />
-            <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
-            <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-            <Route path="/testimonials" element={<PublicLayout><Testimonials /></PublicLayout>} />
-            <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-            <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
-            <Route path="/booking" element={<PublicLayout><Booking /></PublicLayout>} />
+      </Suspense>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
+          <Route path="/portfolio" element={<PublicLayout><Portfolio /></PublicLayout>} />
+          <Route path="/services" element={<PublicLayout><Services /></PublicLayout>} />
+          <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
+          <Route path="/testimonials" element={<PublicLayout><Testimonials /></PublicLayout>} />
+          <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
+          <Route path="/auth" element={<PublicLayout><Auth /></PublicLayout>} />
+          <Route path="/booking" element={<PublicLayout><Booking /></PublicLayout>} />
 
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="bookings" element={<AdminBookings />} />
-              <Route path="leads" element={<AdminLeads />} />
-              <Route path="clients" element={<AdminClients />} />
-              <Route path="projects" element={<AdminProjects />} />
-              <Route path="packages" element={<AdminPackages />} />
-              <Route path="settings" element={<AdminSettings />} />
-            </Route>
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="bookings" element={<AdminBookings />} />
+            <Route path="leads" element={<AdminLeads />} />
+            <Route path="clients" element={<AdminClients />} />
+            <Route path="projects" element={<AdminProjects />} />
+            <Route path="packages" element={<AdminPackages />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </AdminAuthProvider>
-  </TooltipProvider>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  </AdminAuthProvider>
 );
 
 export default App;

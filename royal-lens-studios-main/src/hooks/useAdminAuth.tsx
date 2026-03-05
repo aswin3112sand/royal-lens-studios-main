@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import type { AuthUser } from "@/lib/services/types";
+import { getStoredAuthToken } from "@/lib/api";
 
 interface AdminAuthContext {
   user: AuthUser | null;
@@ -24,10 +25,11 @@ const AdminAuthCtx = createContext<AdminAuthContext>({
 export const useAdminAuth = () => useContext(AdminAuthCtx);
 
 export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const hasTokenOnBoot = Boolean(getStoredAuthToken());
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isStaff, setIsStaff] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(hasTokenOnBoot);
 
   const applyUserState = (authUser: AuthUser | null) => {
     setUser(authUser);
@@ -43,6 +45,12 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
 
   const refreshAuth = useCallback(async () => {
     if (!shouldRefreshAuth()) {
+      applyUserState(null);
+      setLoading(false);
+      return;
+    }
+
+    if (!getStoredAuthToken()) {
       applyUserState(null);
       setLoading(false);
       return;

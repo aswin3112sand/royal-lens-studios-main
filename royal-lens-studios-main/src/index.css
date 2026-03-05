@@ -134,6 +134,11 @@
     @apply py-8 md:py-12;
   }
 
+  .section-render-opt {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 860px;
+  }
+
   .stack-4 > * + * {
     margin-top: 1rem;
   }
@@ -184,6 +189,19 @@
     z-index: 1;
     pointer-events: none;
     overflow: hidden;
+  }
+
+  .home-hero-shell {
+    min-height: calc(100svh - var(--nav-h-mobile));
+    display: flex;
+    align-items: flex-start;
+    padding-top: clamp(2.25rem, 8.5vh, 5.25rem);
+    padding-bottom: clamp(2.2rem, 8vh, 4.25rem);
+  }
+
+  .home-hero-copy {
+    position: relative;
+    z-index: 2;
   }
 
   .hero-camera-stage {
@@ -366,19 +384,31 @@
   }
 
   @media (max-width: 767px) {
+    .home-hero-shell {
+      min-height: auto;
+      padding-top: clamp(2.15rem, 8vh, 3.5rem);
+      padding-bottom: 2.25rem;
+    }
+
+    .home-hero-copy {
+      max-width: 36rem;
+      margin-inline: auto;
+    }
+
     .hero-camera-stage {
       left: 50%;
-      top: clamp(1.6rem, 10vh, 4.2rem);
+      top: clamp(0.2rem, 4.2vh, 1.8rem);
       right: auto;
       bottom: auto;
-      width: min(92vw, 21.5rem);
+      width: min(86vw, 19.5rem);
       transform: translateX(-50%);
       animation: none;
-      opacity: 0.82;
+      opacity: 0.64;
     }
 
     .hero-camera-glow {
-      filter: blur(34px) saturate(1.06);
+      inset: 2% 0 28% 8%;
+      filter: blur(30px) saturate(1.04);
     }
 
     .hero-camera-model {
@@ -388,9 +418,29 @@
   }
 
   @media (max-width: 480px) {
+    .home-hero-shell {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+
     .hero-camera-stage,
     .hero-camera-aperture {
       animation: none;
+    }
+
+    .hero-camera-stage {
+      width: min(88vw, 18.25rem);
+      top: 0.25rem;
+      opacity: 0.58;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .home-hero-shell {
+      min-height: calc(100svh - var(--nav-h-desktop));
+      align-items: center;
+      padding-top: 0;
+      padding-bottom: 0;
     }
   }
 
