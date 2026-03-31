@@ -1,37 +1,26 @@
-import { api, isUnauthorizedError, setStoredAuthToken } from "@/lib/api";
-import type { AuthResponse, LoginPayload, RegisterPayload } from "@/lib/services/types";
+import { setStoredAuthToken } from "@/lib/api";
+import { localStore } from "@/lib/services/localStore";
+import type { LoginPayload, RegisterPayload } from "@/lib/services/types";
 
 export const authApi = {
   async register(payload: RegisterPayload) {
-    const { data } = await api.post<AuthResponse>("/api/auth/register", payload);
-    setStoredAuthToken(data.token);
-    return data;
+    const response = await localStore.register(payload);
+    setStoredAuthToken(response.token);
+    return response;
   },
 
   async login(payload: LoginPayload) {
-    const { data } = await api.post<AuthResponse>("/api/auth/login", payload);
-    setStoredAuthToken(data.token);
-    return data;
+    const response = await localStore.login(payload);
+    setStoredAuthToken(response.token);
+    return response;
   },
 
   async me() {
-    try {
-      const { data } = await api.get<AuthResponse>("/api/auth/me");
-      return data.user;
-    } catch (error) {
-      if (isUnauthorizedError(error)) {
-        setStoredAuthToken(null);
-        return null;
-      }
-      throw error;
-    }
+    return localStore.me();
   },
 
   async logout() {
-    try {
-      await api.post("/api/auth/logout");
-    } finally {
-      setStoredAuthToken(null);
-    }
+    await localStore.logout();
+    setStoredAuthToken(null);
   },
 };

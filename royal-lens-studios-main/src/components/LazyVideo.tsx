@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from "react";
 interface LazyVideoProps extends Omit<React.VideoHTMLAttributes<HTMLVideoElement>, "src"> {
   src: string;
   deferMs?: number;
+  priority?: boolean;
 }
 
 const LazyVideo = ({
   src,
   deferMs = 250,
+  priority = false,
   autoPlay,
   preload,
   onError,
@@ -19,14 +21,23 @@ const LazyVideo = ({
   ...props
 }: LazyVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [inView, setInView] = useState(false);
-  const [deferredReady, setDeferredReady] = useState(false);
+  const [inView, setInView] = useState(priority);
+  const [deferredReady, setDeferredReady] = useState(priority);
   const [hasError, setHasError] = useState(false);
   const shouldAutoPlay = Boolean(autoPlay);
   const shouldMute = muted ?? shouldAutoPlay;
   const shouldPlayInline = playsInline ?? shouldAutoPlay;
 
   useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  useEffect(() => {
+    if (priority) {
+      setInView(true);
+      return;
+    }
+
     const node = videoRef.current;
     if (!node) return;
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
@@ -46,9 +57,14 @@ const LazyVideo = ({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [priority]);
 
   useEffect(() => {
+    if (priority) {
+      setDeferredReady(true);
+      return;
+    }
+
     let timer: number;
     const raf = window.requestAnimationFrame(() => {
       timer = window.setTimeout(() => setDeferredReady(true), deferMs);
@@ -57,9 +73,10 @@ const LazyVideo = ({
       window.cancelAnimationFrame(raf);
       if (timer) window.clearTimeout(timer);
     };
-  }, [deferMs]);
+  }, [deferMs, priority]);
 
   const shouldLoad = inView && deferredReady && !hasError;
+  const resolvedPreload = shouldLoad ? preload ?? (priority ? "auto" : "metadata") : "none";
 
   const enforceMobilePlaybackAttrs = (node: HTMLVideoElement) => {
     if (shouldPlayInline) {
@@ -134,7 +151,7 @@ const LazyVideo = ({
       autoPlay={shouldAutoPlay && shouldLoad}
       muted={shouldMute}
       playsInline={shouldPlayInline}
-      preload={shouldLoad ? preload ?? "metadata" : "none"}
+      preload={resolvedPreload}
       onError={handleError}
       onCanPlay={handleCanPlay}
       poster={poster}

@@ -1,95 +1,74 @@
-import { api } from "@/lib/api";
+import { localStore } from "@/lib/services/localStore";
 import type {
-  Booking,
-  Client,
   CreateClientPayload,
   CreateLeadPayload,
   CreatePackagePayload,
   CreateProjectPayload,
-  DashboardResponse,
-  Lead,
-  PackageItem,
-  Project,
-  StudioSettings,
   UpdateStudioSettingsPayload,
 } from "@/lib/services/types";
 
 export const adminApi = {
   async getDashboard() {
-    const { data } = await api.get<DashboardResponse>("/api/admin/dashboard");
-    return data;
+    return localStore.getDashboard();
   },
 
   async getBookings() {
-    const { data } = await api.get<Booking[]>("/api/admin/bookings");
-    return data;
+    return localStore.getBookings();
   },
 
   async updateBookingStatus(id: number, status: string) {
-    const { data } = await api.patch<Booking>(`/api/admin/bookings/${id}/status`, { status });
-    return data;
+    return localStore.updateBookingStatus(id, status);
   },
 
   async getLeads() {
-    const { data } = await api.get<Lead[]>("/api/admin/leads");
-    return data;
+    return localStore.getLeads();
   },
 
   async createLead(payload: CreateLeadPayload) {
-    const { data } = await api.post<Lead>("/api/admin/leads", payload);
-    return data;
+    return localStore.createLead(payload);
   },
 
   async updateLeadStatus(id: number, status: string) {
-    const { data } = await api.patch<Lead>(`/api/admin/leads/${id}/status`, { status });
-    return data;
+    return localStore.updateLeadStatus(id, status);
   },
 
   async getClients() {
-    const { data } = await api.get<Client[]>("/api/admin/clients");
-    return data;
+    return localStore.getClients();
   },
 
   async createClient(payload: CreateClientPayload) {
-    const { data } = await api.post<Client>("/api/admin/clients", payload);
-    return data;
+    return localStore.createClient(payload);
   },
 
   async getProjects() {
-    const { data } = await api.get<Project[]>("/api/admin/projects");
-    return data;
+    return localStore.getProjects();
   },
 
   async createProject(payload: CreateProjectPayload) {
-    const { data } = await api.post<Project>("/api/admin/projects", payload);
-    return data;
+    return localStore.createProject(payload);
   },
 
   async deleteProject(id: number) {
-    await api.delete(`/api/admin/projects/${id}`);
+    await localStore.deleteProject(id);
   },
 
   async getPackages() {
-    const { data } = await api.get<PackageItem[]>("/api/admin/packages");
-    return data;
+    return localStore.getPackages();
   },
 
   async createPackage(payload: CreatePackagePayload) {
-    const { data } = await api.post<PackageItem>("/api/admin/packages", payload);
-    return data;
+    return localStore.createPackage(payload);
   },
 
   async deletePackage(id: number) {
-    await api.delete(`/api/admin/packages/${id}`);
+    await localStore.deletePackage(id);
   },
 
   async getSettings() {
-    const { data } = await api.get<StudioSettings>("/api/admin/settings");
-    return data;
+    return localStore.getSettings();
   },
 
   async updateSettings(payload: UpdateStudioSettingsPayload) {
-    const { data } = await api.put<StudioSettings>("/api/admin/settings", payload);
-    return data;
+    return localStore.updateSettings(payload);
   },
 };

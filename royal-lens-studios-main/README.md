@@ -1,32 +1,9 @@
 # Photographer Website
 
-Full-stack project with:
-- Frontend: Vite + React + Tailwind (`royal-lens-studios-main/`)
-- Backend: Java Spring Boot + JWT + MySQL (`backend/`)
-- Deploy: Render Web Service (Docker)
+Frontend-only photography studio website built with Vite, React, TypeScript, Tailwind, Framer Motion, and shadcn-style UI components.
 
 ## Local development
 
-### 1) Start backend (Spring Boot)
-From repo root:
-
-```bash
-cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-Backend runs on `http://localhost:8080`.
-
-On Windows PowerShell, use:
-
-```powershell
-cd backend
-.\mvnw.cmd spring-boot:run --% -Dspring-boot.run.profiles=dev
-```
-
-`mvnw` auto-downloads Maven, so no global Maven install is required.
-
-### 2) Start frontend (Vite)
 From repo root:
 
 ```bash
@@ -35,33 +12,24 @@ npm.cmd install
 npm.cmd run dev -- --host 0.0.0.0 --port 5173
 ```
 
-Frontend runs on `http://localhost:5173`.
+App runs on `http://localhost:5173`.
 
-Create `royal-lens-studios-main/.env` with:
+No backend is required. Public content, auth, booking, and admin demo data are handled locally in the browser.
 
-```env
-VITE_API_BASE_URL=http://localhost:8080
-```
+## Demo credentials
 
-## Docker (single service style)
-From repo root:
+- Admin: `admin@royallens.studio` / `admin123`
+- Staff: `staff@royallens.studio` / `staff123`
+- Client: `client@example.com` / `client123`
+
+## Build
 
 ```bash
-docker compose up --build
+cd royal-lens-studios-main
+npm.cmd run build
 ```
 
-App runs on `http://localhost:8080`.
+## Notes
 
-## Render deployment
-- Service type: `Web Service` (Docker)
-- Uses root `Dockerfile`
-- Health check: `/actuator/health`
-- Configure env vars from `royal-lens-studios-main/.env.render.example`
-- Keep `VITE_API_BASE_URL` empty for same-origin setup (frontend + API in same service)
-
-## Admin promotion (manual)
-After first user signup, promote admin in MySQL:
-
-```sql
-UPDATE users SET role='ADMIN' WHERE email='your-email@example.com';
-```
+- Visual design, media assets, and frontend theme are unchanged.
+- Data is stored in `localStorage`, so it stays frontend-only and can be replaced with real APIs later.

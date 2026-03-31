@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Royal Lens Studios hero poster</title>
+  <desc id="desc">A cinematic abstract lens poster with gold and coral lighting.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111111" />
+      <stop offset="48%" stop-color="#181818" />
+      <stop offset="100%" stop-color="#0d0d0d" />
+    </linearGradient>
+    <radialGradient id="goldGlow" cx="72%" cy="24%" r="42%">
+      <stop offset="0%" stop-color="#f5d889" stop-opacity="0.95" />
+      <stop offset="45%" stop-color="#daa520" stop-opacity="0.34" />
+      <stop offset="100%" stop-color="#daa520" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="coralGlow" cx="22%" cy="16%" r="36%">
+      <stop offset="0%" stop-color="#ff8b72" stop-opacity="0.7" />
+      <stop offset="42%" stop-color="#ff6f61" stop-opacity="0.26" />
+      <stop offset="100%" stop-color="#ff6f61" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="lensOuter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2f2f2f" />
+      <stop offset="52%" stop-color="#1d1d1d" />
+      <stop offset="100%" stop-color="#080808" />
+    </radialGradient>
+    <radialGradient id="lensInner" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#382f25" />
+      <stop offset="30%" stop-color="#141414" />
+      <stop offset="100%" stop-color="#020202" />
+    </radialGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e8d8" />
+      <stop offset="50%" stop-color="#daa520" />
+      <stop offset="100%" stop-color="#ff6f61" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <rect width="1600" height="900" fill="url(#goldGlow)" />
+  <rect width="1600" height="900" fill="url(#coralGlow)" />
+
+  <g opacity="0.95">
+    <circle cx="980" cy="470" r="285" fill="url(#lensOuter)" />
+    <circle cx="980" cy="470" r="223" fill="#0b0b0b" stroke="url(#ring)" stroke-opacity="0.65" stroke-width="3" />
+    <circle cx="980" cy="470" r="194" fill="url(#lensInner)" />
+    <circle cx="980" cy="470" r="146" fill="#090909" stroke="#d1a149" stroke-opacity="0.28" stroke-width="2" />
+    <circle cx="980" cy="470" r="103" fill="#050505" />
+    <circle cx="1038" cy="410" r="54" fill="#ffffff" fill-opacity="0.12" />
+    <circle cx="937" cy="528" r="18" fill="#ffb37c" fill-opacity="0.3" />
+  </g>
+
+  <g opacity="0.24">
+    <path d="M130 770c170-126 330-192 476-198 120-5 210 26 328 60 110 31 210 42 330 18 92-19 180-59 276-124v174H130Z" fill="#070707" />
+    <path d="M80 745c162-80 323-113 474-102 122 9 212 39 332 80 117 39 220 53 334 30 109-22 200-60 300-127v174H80Z" fill="#0a0a0a" />
+  </g>
+
+  <g opacity="0.78">
+    <circle cx="436" cy="318" r="3" fill="#f5e8d8" />
+    <circle cx="518" cy="262" r="2.5" fill="#daa520" />
+    <circle cx="592" cy="348" r="2.5" fill="#ff6f61" />
+    <circle cx="668" cy="224" r="3" fill="#f5e8d8" />
+  </g>
+</svg>

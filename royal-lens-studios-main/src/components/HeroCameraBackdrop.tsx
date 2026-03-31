@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import heroVideo from "@/assets/hero-video.mp4";
+import heroPoster from "@/assets/hero-video-poster.svg";
 import LazyVideo from "@/components/LazyVideo";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -49,6 +50,21 @@ const canAutoplayVideo = (isMobile: boolean) => {
   return true;
 };
 
+const getVideoPreload = (isMobile: boolean): "auto" | "metadata" => {
+  if (typeof window === "undefined") {
+    return isMobile ? "metadata" : "auto";
+  }
+
+  const connectionInfo = getConnectionInfo();
+  const networkType = connectionInfo?.effectiveType ?? "";
+
+  if (connectionInfo?.saveData || networkType === "slow-2g" || networkType === "2g" || networkType === "3g") {
+    return "metadata";
+  }
+
+  return isMobile ? "metadata" : "auto";
+};
+
 const HeroCameraBackdrop = () => {
   const isMobile = useIsMobile();
   const [videoEnabled, setVideoEnabled] = useState<boolean>(() => {
@@ -76,6 +92,14 @@ const HeroCameraBackdrop = () => {
     };
   }, [isMobile]);
 
+  const fallbackStyle = useMemo(
+    () =>
+      ({
+        "--hero-fallback-image": `url(${heroPoster})`,
+      }) as CSSProperties,
+    []
+  );
+
   return (
     <div aria-hidden="true" className="hero-video-backdrop">
       {videoEnabled ? (
@@ -85,14 +109,15 @@ const HeroCameraBackdrop = () => {
           muted
           loop
           playsInline
-          poster="/placeholder.svg"
-          preload="metadata"
-          deferMs={isMobile ? 900 : 320}
+          poster={heroPoster}
+          preload={getVideoPreload(isMobile)}
+          priority
           className="hero-video-media"
           disablePictureInPicture
+          disableRemotePlayback
         />
       ) : (
-        <div className="hero-video-fallback" />
+        <div className="hero-video-fallback" style={fallbackStyle} />
       )}
       <div className="hero-video-vignette" />
     </div>

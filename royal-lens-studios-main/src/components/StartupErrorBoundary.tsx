@@ -48,10 +48,10 @@ class StartupErrorBoundary extends Component<
           <div className="space-y-2 text-sm md:text-base">
             <p className="font-semibold">Next steps:</p>
             <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
-              <li>Open Render service settings for this app.</li>
-              <li>Confirm backend env vars (`SPRING_DATASOURCE_*`, `JWT_SECRET`) are set.</li>
-              <li>Confirm frontend env var <code>VITE_API_BASE_URL</code> is valid for local development.</li>
-              <li>Redeploy after updating environment variables.</li>
+              <li>Confirm the frontend dependencies were installed successfully.</li>
+              <li>Restart the Vite frontend process.</li>
+              <li>Clear local storage if stale mock data is causing a bad state.</li>
+              <li>Reload the page after fixing the issue.</li>
             </ol>
           </div>
         </div>

@@ -64,13 +64,6 @@ const Index = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const hasConfiguredApiBase = Boolean(import.meta.env.VITE_API_BASE_URL?.trim());
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    const shouldFetchLivePackages = hasConfiguredApiBase || import.meta.env.DEV || !isLocalHost;
-
-    if (!shouldFetchLivePackages) {
-      return;
-    }
 
     const idleWindow = window as Window & {
       requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
@@ -127,8 +120,8 @@ const Index = () => {
       <section id="home" className="relative overflow-hidden pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
         <div className="absolute inset-0 neon-hero-bg" />
         <HeroCameraBackdrop />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(20,20,20,0.38),rgba(20,20,20,0.82))]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(218,165,32,0.16),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(20,20,20,0.24),rgba(20,20,20,0.7))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(218,165,32,0.18),transparent_45%)]" />
 
         <SiteContainer className="home-hero-shell relative z-10">
           <div className="home-hero-copy mx-auto w-full max-w-5xl text-center md:mx-0 md:text-left">

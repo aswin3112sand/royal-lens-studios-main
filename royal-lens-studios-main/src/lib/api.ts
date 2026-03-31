@@ -3,6 +3,13 @@ import axios from "axios";
 const baseURL = import.meta.env.VITE_API_BASE_URL?.trim() || "";
 const AUTH_TOKEN_KEY = "auth_token";
 
+export class AppError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AppError";
+  }
+}
+
 export const api = axios.create({
   baseURL,
   withCredentials: true,
@@ -36,6 +43,9 @@ api.interceptors.request.use((config) => {
 });
 
 export const extractApiErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof AppError && error.message) {
+    return error.message;
+  }
   if (axios.isAxiosError(error)) {
     const message = (error.response?.data as { message?: string } | undefined)?.message;
     if (message) return message;

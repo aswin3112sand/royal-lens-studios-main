@@ -228,9 +228,9 @@
 
   .neon-hero-bg {
     background:
-      linear-gradient(130deg, rgb(20 20 20 / 68%) 0%, rgb(15 15 15 / 70%) 100%),
-      radial-gradient(circle at 72% 18%, rgb(218 165 32 / 22%), transparent 40%),
-      radial-gradient(circle at 18% 22%, rgb(255 111 97 / 16%), transparent 35%);
+      linear-gradient(130deg, rgb(20 20 20 / 54%) 0%, rgb(15 15 15 / 62%) 100%),
+      radial-gradient(circle at 72% 18%, rgb(218 165 32 / 24%), transparent 40%),
+      radial-gradient(circle at 18% 22%, rgb(255 111 97 / 18%), transparent 35%);
   }
 
   .hero-video-backdrop {
@@ -251,24 +251,29 @@
 
   .hero-video-media {
     object-fit: cover;
-    object-position: center 35%;
-    filter: saturate(1.04) contrast(1.02);
-    transform: scale(1.02);
+    object-position: center 34%;
+    filter: saturate(1.08) contrast(1.03) brightness(1.02);
+    transform: scale(1.01);
+    backface-visibility: hidden;
   }
 
   .hero-video-fallback {
-    background:
+    background-image:
+      var(--hero-fallback-image),
       radial-gradient(circle at 24% 20%, rgb(218 165 32 / 18%), transparent 45%),
       radial-gradient(circle at 84% 12%, rgb(255 111 97 / 16%), transparent 42%),
       linear-gradient(155deg, #1f1f1f 0%, #171717 62%, #121212 100%);
+    background-position: center, 24% 20%, 84% 12%, center;
+    background-repeat: no-repeat;
+    background-size: cover, auto, auto, auto;
   }
 
   .hero-video-vignette {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 50% 34%, transparent 30%, rgb(0 0 0 / 52%) 78%),
-      linear-gradient(180deg, rgb(28 28 28 / 25%) 0%, rgb(28 28 28 / 76%) 88%);
+      radial-gradient(circle at 50% 34%, transparent 34%, rgb(0 0 0 / 46%) 78%),
+      linear-gradient(180deg, rgb(28 28 28 / 16%) 0%, rgb(28 28 28 / 68%) 88%);
   }
 
   .home-hero-shell {
@@ -297,8 +302,9 @@
     }
 
     .hero-video-media {
-      object-position: center 22%;
-      transform: scale(1.06);
+      object-position: center 24%;
+      filter: saturate(1.06) contrast(1.02) brightness(1.03);
+      transform: scale(1.015);
     }
   }
 

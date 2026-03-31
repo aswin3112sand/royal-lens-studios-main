@@ -1,14 +1,12 @@
-import { api } from "@/lib/api";
-import type { Booking, CreateBookingPayload } from "@/lib/services/types";
+import { localStore } from "@/lib/services/localStore";
+import type { CreateBookingPayload } from "@/lib/services/types";
 
 export const bookingApi = {
   async getMyBookings() {
-    const { data } = await api.get<Booking[]>("/api/bookings/me");
-    return data;
+    return localStore.getMyBookings();
   },
 
   async createBooking(payload: CreateBookingPayload) {
-    const { data } = await api.post<Booking>("/api/bookings", payload);
-    return data;
+    return localStore.createBooking(payload);
   },
 };

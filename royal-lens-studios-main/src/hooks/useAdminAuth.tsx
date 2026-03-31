@@ -37,19 +37,7 @@ export const AdminAuthProvider = ({ children }: { children: React.ReactNode }) =
     setIsStaff(authUser?.role === "STAFF");
   };
 
-  const shouldRefreshAuth = () => {
-    const hasConfiguredApiBase = Boolean(import.meta.env.VITE_API_BASE_URL?.trim());
-    const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    return hasConfiguredApiBase || import.meta.env.DEV || !isLocalHost;
-  };
-
   const refreshAuth = useCallback(async () => {
-    if (!shouldRefreshAuth()) {
-      applyUserState(null);
-      setLoading(false);
-      return;
-    }
-
     if (!getStoredAuthToken()) {
       applyUserState(null);
       setLoading(false);
