@@ -150,6 +150,10 @@ const Auth = () => {
           alt=""
           loading="eager"
           decoding="async"
+          fetchpriority="high"
+          sizes="100vw"
+          width={1920}
+          height={1280}
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-background/88 backdrop-blur-sm" />

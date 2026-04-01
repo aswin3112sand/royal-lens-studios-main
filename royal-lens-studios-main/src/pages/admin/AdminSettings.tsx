@@ -47,8 +47,8 @@ const AdminSettings = () => {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl font-bold flex items-center gap-3 mb-8">
-        <Settings className="w-8 h-8 text-gold" /> Settings
+      <h1 className="mb-8 flex items-center gap-3 font-serif text-2xl font-bold md:text-3xl">
+        <Settings className="h-7 w-7 text-gold md:h-8 md:w-8" /> Settings
       </h1>
 
       <div className="glass rounded-xl p-6 md:p-8 max-w-2xl space-y-5">

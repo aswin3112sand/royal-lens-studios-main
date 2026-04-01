@@ -1,5 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Crown, LayoutDashboard, CalendarDays, Users, UserCheck, FolderOpen, Package, Settings, LogOut, ChevronLeft } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  Crown,
+  FolderOpen,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Settings,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const links = [
@@ -12,7 +23,12 @@ const links = [
   { to: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  mobile?: boolean;
+  onNavigate?: () => void;
+}
+
+const AdminSidebar = ({ mobile = false, onNavigate }: AdminSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, logout } = useAdminAuth();
@@ -21,49 +37,60 @@ const AdminSidebar = () => {
     exact ? location.pathname === path : location.pathname.startsWith(path);
 
   const handleLogout = async () => {
+    onNavigate?.();
     await logout();
     navigate("/");
   };
 
   return (
-    <aside className="w-64 min-h-screen glass-strong border-r border-border flex flex-col shrink-0">
-      <div className="p-5 border-b border-border">
-        <Link to="/" className="flex items-center gap-2">
-          <Crown className="w-6 h-6 text-gold" />
-          <span className="font-serif text-lg font-bold">Royal <span className="text-gold">Admin</span></span>
+    <aside
+      className={
+        mobile
+          ? "flex h-full min-h-screen flex-col bg-background"
+          : "flex min-h-screen w-64 shrink-0 flex-col border-r border-border glass-strong"
+      }
+    >
+      <div className="border-b border-border p-5">
+        <Link to="/" onClick={onNavigate} className="flex items-center gap-2">
+          <Crown className="h-6 w-6 text-gold" />
+          <span className="font-serif text-lg font-bold">
+            Royal <span className="text-gold">Admin</span>
+          </span>
         </Link>
-        <p className="text-xs text-muted-foreground mt-1">{isAdmin ? "Administrator" : "Staff"}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{isAdmin ? "Administrator" : "Staff"}</p>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-auto p-3">
         {links.map((link) => (
           <Link
             key={link.to}
             to={link.to}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            onClick={onNavigate}
+            className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all ${
               isActive(link.to, link.exact)
-                ? "bg-gold/10 text-gold border border-gold/20"
-                : "text-foreground/70 hover:text-foreground hover:bg-white/5"
+                ? "border border-gold/20 bg-gold/10 text-gold"
+                : "text-foreground/70 hover:bg-white/5 hover:text-foreground"
             }`}
           >
-            <link.icon className="w-4 h-4" />
+            <link.icon className="h-4 w-4" />
             {link.label}
           </Link>
         ))}
       </nav>
 
-      <div className="p-3 border-t border-border space-y-1">
+      <div className="space-y-1 border-t border-border p-3">
         <Link
           to="/"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground/70 hover:text-foreground hover:bg-white/5 transition-all"
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-foreground/70 transition-all hover:bg-white/5 hover:text-foreground"
         >
-          <ChevronLeft className="w-4 h-4" /> Back to Site
+          <ChevronLeft className="h-4 w-4" /> Back to Site
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground/70 hover:text-destructive hover:bg-white/5 transition-all"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-foreground/70 transition-all hover:bg-white/5 hover:text-destructive"
         >
-          <LogOut className="w-4 h-4" /> Logout
+          <LogOut className="h-4 w-4" /> Logout
         </button>
       </div>
     </aside>

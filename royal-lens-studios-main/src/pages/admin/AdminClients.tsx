@@ -46,18 +46,18 @@ const AdminClients = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-3xl font-bold flex items-center gap-3">
-          <UserCheck className="w-8 h-8 text-gold" /> Clients
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h1 className="flex items-center gap-3 font-serif text-2xl font-bold md:text-3xl">
+          <UserCheck className="h-7 w-7 text-gold md:h-8 md:w-8" /> Clients
         </h1>
-        <div className="flex gap-3">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+        <div className="flex flex-col gap-3 sm:flex-row md:items-center">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." className="pl-10 bg-background/50" />
           </div>
           <Dialog open={showAdd} onOpenChange={setShowAdd}>
             <DialogTrigger asChild>
-              <Button className="bg-gold text-royal-dark hover:bg-gold-light"><Plus className="w-4 h-4 mr-1" /> Add Client</Button>
+              <Button className="w-full bg-gold text-royal-dark hover:bg-gold-light sm:w-auto"><Plus className="mr-1 h-4 w-4" /> Add Client</Button>
             </DialogTrigger>
             <DialogContent className="glass-strong border-border">
               <DialogHeader><DialogTitle className="font-serif text-gold">Add Client</DialogTitle></DialogHeader>

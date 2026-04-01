@@ -94,6 +94,8 @@ const About = () => (
                 alt="Studio"
                 loading="lazy"
                 decoding="async"
+                width={index === 0 ? 1200 : 600}
+                height={index === 0 ? 900 : 600}
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </motion.div>

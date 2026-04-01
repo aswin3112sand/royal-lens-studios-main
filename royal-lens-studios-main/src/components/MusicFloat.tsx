@@ -82,7 +82,7 @@ const MusicFloat = () => {
         className="music-fab ring-focus"
       >
         {isUnavailable ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
-        <span>{isUnavailable ? "Music Unavailable" : isPlaying ? "Pause Music" : "Play Music"}</span>
+        <span className="hidden sm:inline">{isUnavailable ? "Music Unavailable" : isPlaying ? "Pause Music" : "Play Music"}</span>
       </button>
     </>
   );

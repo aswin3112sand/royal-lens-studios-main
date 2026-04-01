@@ -78,6 +78,7 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
@@ -86,6 +87,9 @@
     line-height: 1.7;
     letter-spacing: 0.002em;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
     background:
       radial-gradient(circle at 11% -9%, rgb(218 165 32 / 14%), transparent 40%),
       radial-gradient(circle at 92% -6%, rgb(255 111 97 / 12%), transparent 35%),
@@ -441,8 +445,8 @@
 
   .music-fab {
     position: fixed;
-    right: 0.95rem;
-    bottom: 0.95rem;
+    right: calc(max(0.95rem, env(safe-area-inset-right) + 0.55rem));
+    bottom: calc(max(0.95rem, env(safe-area-inset-bottom) + 0.55rem));
     z-index: 60;
     min-height: 44px;
     min-width: 44px;
@@ -479,9 +483,27 @@
 
   @media (max-width: 639px) {
     .music-fab {
-      right: 0.75rem;
-      bottom: 0.75rem;
       padding: 0.58rem 0.78rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .review-theme-site::before {
+      position: absolute;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 }

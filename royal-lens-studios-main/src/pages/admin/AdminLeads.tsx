@@ -19,7 +19,9 @@ const AdminLeads = () => {
   const [form, setForm] = useState({ name: "", email: "", phone: "", source: "manual", notes: "" });
   const { toast } = useToast();
 
-  useEffect(() => { void fetchLeads(); }, []);
+  useEffect(() => {
+    void fetchLeads();
+  }, []);
 
   const fetchLeads = async () => {
     try {
@@ -51,84 +53,128 @@ const AdminLeads = () => {
     }
   };
 
-  const filtered = leads.filter((l) =>
-    l.name?.toLowerCase().includes(search.toLowerCase()) ||
-    l.email?.toLowerCase().includes(search.toLowerCase())
+  const filtered = leads.filter((lead) =>
+    lead.name?.toLowerCase().includes(search.toLowerCase()) ||
+    lead.email?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-3xl font-bold flex items-center gap-3">
-          <Users className="w-8 h-8 text-gold" /> Leads
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h1 className="flex items-center gap-3 font-serif text-2xl font-bold md:text-3xl">
+          <Users className="h-7 w-7 text-gold md:h-8 md:w-8" /> Leads
         </h1>
-        <div className="flex gap-3">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search leads..." className="pl-10 bg-background/50" />
+        <div className="flex flex-col gap-3 sm:flex-row md:items-center">
+          <div className="relative w-full md:w-64">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search leads..." className="bg-background/50 pl-10" />
           </div>
           <Dialog open={showAdd} onOpenChange={setShowAdd}>
             <DialogTrigger asChild>
-              <Button className="bg-gold text-royal-dark hover:bg-gold-light"><Plus className="w-4 h-4 mr-1" /> Add Lead</Button>
+              <Button className="w-full bg-gold text-royal-dark hover:bg-gold-light sm:w-auto">
+                <Plus className="mr-1 h-4 w-4" /> Add Lead
+              </Button>
             </DialogTrigger>
-            <DialogContent className="glass-strong border-border">
-              <DialogHeader><DialogTitle className="font-serif text-gold">Add Lead</DialogTitle></DialogHeader>
+            <DialogContent className="border-border glass-strong">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-gold">Add Lead</DialogTitle>
+              </DialogHeader>
               <div className="space-y-3">
                 <Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-background/50" />
                 <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-background/50" />
                 <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-background/50" />
                 <Textarea placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="bg-background/50" />
-                <Button onClick={addLead} className="w-full bg-gold text-royal-dark hover:bg-gold-light">Save Lead</Button>
+                <Button onClick={addLead} className="w-full bg-gold text-royal-dark hover:bg-gold-light">
+                  Save Lead
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="glass rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Contact</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Source</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No leads found.</td></tr>
-              ) : (
-                filtered.map((l) => (
-                  <tr key={l.id} className="border-b border-border/50 hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 font-medium text-sm">{l.name}</td>
-                    <td className="px-4 py-3">
-                      <p className="text-sm">{l.email || "-"}</p>
-                      <p className="text-xs text-muted-foreground">{l.phone || ""}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground capitalize">{l.source}</td>
-                    <td className="px-4 py-3">
-                      <Select value={l.status} onValueChange={(v) => updateStatus(l.id, v)}>
-                        <SelectTrigger className="w-36 h-8 text-xs bg-background/30">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {leadStatuses.map((s) => (
-                            <SelectItem key={s} value={s} className="text-xs capitalize">{s.replace("_", " ")}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground max-w-[200px] truncate">{l.notes || "-"}</td>
+      {filtered.length === 0 ? (
+        <div className="rounded-xl glass p-6 text-center text-sm text-muted-foreground">No leads found.</div>
+      ) : (
+        <>
+          <div className="space-y-4 md:hidden">
+            {filtered.map((lead) => (
+              <article key={lead.id} className="rounded-xl glass p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{lead.name}</p>
+                    <p className="text-xs text-muted-foreground">{lead.email || lead.phone || "No contact info"}</p>
+                  </div>
+                  <span className="rounded-full bg-secondary/10 px-2 py-1 text-[11px] uppercase tracking-wide text-secondary">
+                    {lead.source || "manual"}
+                  </span>
+                </div>
+
+                <p className="mt-3 text-sm text-muted-foreground">{lead.notes || "No notes"}</p>
+
+                <div className="mt-4">
+                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</label>
+                  <Select value={lead.status} onValueChange={(value) => updateStatus(lead.id, value)}>
+                    <SelectTrigger className="h-10 w-full bg-background/30 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {leadStatuses.map((status) => (
+                        <SelectItem key={status} value={status} className="text-xs capitalize">
+                          {status.replace("_", " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl glass md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Name</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Contact</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Source</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Status</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Notes</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {filtered.map((lead) => (
+                    <tr key={lead.id} className="border-b border-border/50 transition-colors hover:bg-white/5">
+                      <td className="px-4 py-3 text-sm font-medium">{lead.name}</td>
+                      <td className="px-4 py-3">
+                        <p className="text-sm">{lead.email || "-"}</p>
+                        <p className="text-xs text-muted-foreground">{lead.phone || ""}</p>
+                      </td>
+                      <td className="px-4 py-3 text-sm capitalize text-muted-foreground">{lead.source}</td>
+                      <td className="px-4 py-3">
+                        <Select value={lead.status} onValueChange={(value) => updateStatus(lead.id, value)}>
+                          <SelectTrigger className="h-8 w-36 bg-background/30 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {leadStatuses.map((status) => (
+                              <SelectItem key={status} value={status} className="text-xs capitalize">
+                                {status.replace("_", " ")}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="max-w-[220px] px-4 py-3 text-xs text-muted-foreground">{lead.notes || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

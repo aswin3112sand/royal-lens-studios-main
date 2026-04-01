@@ -15,7 +15,9 @@ const AdminBookings = () => {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => { void fetchBookings(); }, []);
+  useEffect(() => {
+    void fetchBookings();
+  }, []);
 
   const fetchBookings = async () => {
     try {
@@ -36,68 +38,109 @@ const AdminBookings = () => {
     }
   };
 
-  const filtered = bookings.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase()) ||
-    b.email.toLowerCase().includes(search.toLowerCase()) ||
-    b.shootType.toLowerCase().includes(search.toLowerCase())
+  const filtered = bookings.filter((booking) =>
+    booking.name.toLowerCase().includes(search.toLowerCase()) ||
+    booking.email.toLowerCase().includes(search.toLowerCase()) ||
+    booking.shootType.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-3xl font-bold flex items-center gap-3">
-          <CalendarDays className="w-8 h-8 text-gold" /> Bookings
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="flex items-center gap-3 font-serif text-2xl font-bold md:text-3xl">
+          <CalendarDays className="h-7 w-7 text-gold md:h-8 md:w-8" /> Bookings
         </h1>
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search bookings..." className="pl-10 bg-background/50" />
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search bookings..." className="bg-background/50 pl-10" />
         </div>
       </div>
 
-      <div className="glass rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border text-left">
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Client</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Date</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Phone</th>
-                <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No bookings found.</td></tr>
-              ) : (
-                filtered.map((b) => (
-                  <tr key={b.id} className="border-b border-border/50 hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-sm">{b.name}</p>
-                      <p className="text-xs text-muted-foreground">{b.email}</p>
-                    </td>
-                    <td className="px-4 py-3 text-sm">{b.shootType}</td>
-                    <td className="px-4 py-3 text-sm text-gold">{b.preferredDate ? format(new Date(b.preferredDate), "PP") : "-"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{b.phone || "-"}</td>
-                    <td className="px-4 py-3">
-                      <Select value={b.status} onValueChange={(v) => updateStatus(b.id, v)}>
-                        <SelectTrigger className="w-32 h-8 text-xs bg-background/30">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statuses.map((s) => (
-                            <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </td>
+      {filtered.length === 0 ? (
+        <div className="rounded-xl glass p-6 text-center text-sm text-muted-foreground">No bookings found.</div>
+      ) : (
+        <>
+          <div className="space-y-4 md:hidden">
+            {filtered.map((booking) => (
+              <article key={booking.id} className="rounded-xl glass p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{booking.name}</p>
+                    <p className="text-xs text-muted-foreground">{booking.email}</p>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2 py-1 text-[11px] font-medium uppercase tracking-wide text-primary">
+                    {booking.shootType}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-2 text-sm text-muted-foreground">
+                  <p>Date: {booking.preferredDate ? format(new Date(booking.preferredDate), "PP") : "-"}</p>
+                  <p>Phone: {booking.phone || "-"}</p>
+                </div>
+
+                <div className="mt-4">
+                  <label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</label>
+                  <Select value={booking.status} onValueChange={(value) => updateStatus(booking.id, value)}>
+                    <SelectTrigger className="h-10 w-full bg-background/30 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((status) => (
+                        <SelectItem key={status} value={status} className="text-xs capitalize">
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl glass md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Client</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Type</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Date</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Phone</th>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">Status</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody>
+                  {filtered.map((booking) => (
+                    <tr key={booking.id} className="border-b border-border/50 transition-colors hover:bg-white/5">
+                      <td className="px-4 py-3">
+                        <p className="text-sm font-medium">{booking.name}</p>
+                        <p className="text-xs text-muted-foreground">{booking.email}</p>
+                      </td>
+                      <td className="px-4 py-3 text-sm">{booking.shootType}</td>
+                      <td className="px-4 py-3 text-sm text-gold">{booking.preferredDate ? format(new Date(booking.preferredDate), "PP") : "-"}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground">{booking.phone || "-"}</td>
+                      <td className="px-4 py-3">
+                        <Select value={booking.status} onValueChange={(value) => updateStatus(booking.id, value)}>
+                          <SelectTrigger className="h-8 w-32 bg-background/30 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statuses.map((status) => (
+                              <SelectItem key={status} value={status} className="text-xs capitalize">
+                                {status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

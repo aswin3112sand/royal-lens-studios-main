@@ -29,6 +29,11 @@ const canAutoplayVideo = (isMobile: boolean) => {
     return true;
   }
 
+  // Mobile gets a lightweight poster-first hero to protect LCP and data usage.
+  if (isMobile) {
+    return false;
+  }
+
   if (window.matchMedia(REDUCED_MOTION_QUERY).matches) {
     return false;
   }

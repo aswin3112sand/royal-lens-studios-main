@@ -53,13 +53,13 @@ const AdminPackages = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-3xl font-bold flex items-center gap-3">
-          <Package className="w-8 h-8 text-gold" /> Packages
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h1 className="flex items-center gap-3 font-serif text-2xl font-bold md:text-3xl">
+          <Package className="h-7 w-7 text-gold md:h-8 md:w-8" /> Packages
         </h1>
         <Dialog open={showAdd} onOpenChange={setShowAdd}>
           <DialogTrigger asChild>
-            <Button className="bg-gold text-royal-dark hover:bg-gold-light"><Plus className="w-4 h-4 mr-1" /> Add Package</Button>
+            <Button className="w-full bg-gold text-royal-dark hover:bg-gold-light sm:w-auto"><Plus className="mr-1 h-4 w-4" /> Add Package</Button>
           </DialogTrigger>
           <DialogContent className="glass-strong border-border">
             <DialogHeader><DialogTitle className="font-serif text-gold">Add Package</DialogTitle></DialogHeader>
