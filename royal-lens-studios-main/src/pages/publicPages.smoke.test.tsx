@@ -2,6 +2,7 @@
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import About from "@/pages/About";
+import Booking from "@/pages/Booking";
 import Contact from "@/pages/Contact";
 import Index from "@/pages/Index";
 import Portfolio from "@/pages/Portfolio";
@@ -12,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   toast: vi.fn(),
   getPackages: vi.fn(),
   createContactMessage: vi.fn(),
+  getMyBookings: vi.fn(),
+  createBooking: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -25,6 +28,13 @@ vi.mock("@/lib/services/publicApi", () => ({
   },
 }));
 
+vi.mock("@/lib/services/bookingApi", () => ({
+  bookingApi: {
+    getMyBookings: mocks.getMyBookings,
+    createBooking: mocks.createBooking,
+  },
+}));
+
 const renderWithRouter = (node: JSX.Element) =>
   render(<MemoryRouter>{node}</MemoryRouter>);
 
@@ -32,7 +42,10 @@ beforeEach(() => {
   mocks.toast.mockReset();
   mocks.getPackages.mockReset();
   mocks.createContactMessage.mockReset();
+  mocks.getMyBookings.mockReset();
+  mocks.createBooking.mockReset();
   mocks.getPackages.mockResolvedValue([]);
+  mocks.getMyBookings.mockResolvedValue([]);
 });
 
 describe("Public pages smoke", () => {
@@ -65,5 +78,11 @@ describe("Public pages smoke", () => {
   it("renders contact page", () => {
     renderWithRouter(<Contact />);
     expect(screen.getByText("Contact")).toBeInTheDocument();
+  });
+
+  it("renders booking page", async () => {
+    renderWithRouter(<Booking />);
+    expect(screen.getByText(/book a session/i)).toBeInTheDocument();
+    await waitFor(() => expect(mocks.getMyBookings).toHaveBeenCalled());
   });
 });

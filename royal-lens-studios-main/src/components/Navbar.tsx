@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Crown, Loader2, LogOut, Menu, MessageCircle, Shield, User, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Crown, Menu, MessageCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 const WHATSAPP_NUMBER = "919876543210";
 
@@ -19,8 +18,6 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isAdminOrStaff, logout, loading } = useAdminAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 18);
@@ -31,11 +28,6 @@ const Navbar = () => {
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/");
-  };
 
   return (
     <nav
@@ -80,34 +72,9 @@ const Navbar = () => {
             <MessageCircle className="h-4 w-4" />
           </a>
 
-          {loading ? (
-            <Button variant="ghost" size="sm" className="cursor-default text-foreground/75">
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Checking
-            </Button>
-          ) : user ? (
-            <>
-              {isAdminOrStaff && (
-                <Button variant="ghost" size="sm" className="text-primary hover:text-accent" onClick={() => navigate("/admin")}>
-                  <Shield className="mr-1 h-4 w-4" /> Admin
-                </Button>
-              )}
-              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={() => navigate("/booking")}>
-                <User className="mr-1 h-4 w-4" /> My Bookings
-              </Button>
-              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={handleLogout}>
-                <LogOut className="mr-1 h-4 w-4" /> Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" size="sm" className="text-foreground/90 hover:text-foreground" onClick={() => navigate("/auth")}>
-                Login
-              </Button>
-              <Button size="sm" className="neon-btn-primary" onClick={() => navigate("/booking")}>
-                Book Now
-              </Button>
-            </>
-          )}
+          <Button asChild size="sm" className="neon-btn-primary">
+            <Link to="/booking">Book Now</Link>
+          </Button>
         </div>
 
         <button
@@ -151,35 +118,9 @@ const Navbar = () => {
               >
                 <MessageCircle className="mr-2 h-4 w-4" /> WhatsApp
               </Button>
-
-              {loading ? (
-                <Button variant="ghost" size="sm" className="justify-start text-foreground/75">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking account...
-                </Button>
-              ) : user ? (
-                <>
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => navigate("/booking")}>
-                    <User className="mr-2 h-4 w-4" /> My Bookings
-                  </Button>
-                  {isAdminOrStaff && (
-                    <Button variant="ghost" size="sm" className="justify-start text-primary hover:text-accent" onClick={() => navigate("/admin")}>
-                      <Shield className="mr-2 h-4 w-4" /> Admin
-                    </Button>
-                  )}
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" /> Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" className="justify-start" onClick={() => navigate("/auth")}>
-                    Login
-                  </Button>
-                  <Button size="sm" className="neon-btn-primary justify-start" onClick={() => navigate("/booking")}>
-                    Book Now
-                  </Button>
-                </>
-              )}
+              <Button asChild size="sm" className="neon-btn-primary justify-start">
+                <Link to="/booking">Book Now</Link>
+              </Button>
             </div>
           </div>
         </div>

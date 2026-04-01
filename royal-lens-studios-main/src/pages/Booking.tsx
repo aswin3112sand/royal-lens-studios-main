@@ -1,5 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { CalendarIcon, Camera, CheckCircle, Clock, Phone } from "lucide-react";
 import { format } from "date-fns";
@@ -11,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import SectionHeading from "@/components/SectionHeading";
-import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { bookingApi } from "@/lib/services/bookingApi";
 import { extractApiErrorMessage } from "@/lib/api";
 import type { Booking as BookingItem } from "@/lib/services/types";
@@ -26,9 +24,7 @@ const Booking = () => {
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState<Date>();
   const [form, setForm] = useState({ name: "", email: "", phone: "", shootType: "" });
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAdminAuth();
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -37,28 +33,15 @@ const Booking = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: extractApiErrorMessage(error, "Unable to load your bookings."),
+        description: extractApiErrorMessage(error, "Unable to load your recent booking requests."),
         variant: "destructive",
       });
     }
   }, [toast]);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    setForm((current) => ({
-      ...current,
-      name: user.fullName || current.name,
-      email: user.email || current.email,
-    }));
-
     void fetchBookings();
-  }, [authLoading, user, navigate, fetchBookings]);
+  }, [fetchBookings]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,15 +54,15 @@ const Booking = () => {
     setLoading(true);
     try {
       await bookingApi.createBooking({
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
         shootType: form.shootType,
         preferredDate: format(date, "yyyy-MM-dd"),
       });
 
-      toast({ title: "Booking Confirmed", description: "We'll be in touch shortly to finalize details." });
-      setForm((current) => ({ ...current, phone: "", shootType: "" }));
+      toast({ title: "Booking Request Sent", description: "Our team will reach out shortly to confirm the session." });
+      setForm({ name: "", email: "", phone: "", shootType: "" });
       setDate(undefined);
       await fetchBookings();
     } catch (error) {
@@ -93,25 +76,11 @@ const Booking = () => {
     }
   };
 
-  if (authLoading) {
-    return (
-      <main className="pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
-        <SectionBlock compact>
-          <SiteContainer>
-            <p className="text-center text-sm text-foreground/70">Loading...</p>
-          </SiteContainer>
-        </SectionBlock>
-      </main>
-    );
-  }
-
-  if (!user) return null;
-
   return (
     <main className="pt-[var(--nav-h-mobile)] md:pt-[var(--nav-h-desktop)]">
       <SectionBlock tone="base">
         <SiteContainer>
-          <SectionHeading title="Book a Session" subtitle="Choose your preferred date and shoot type to get started." />
+          <SectionHeading title="Book a Session" subtitle="Share your details and preferred date. We will confirm the session with you directly." />
 
           <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
             <motion.form
@@ -121,24 +90,24 @@ const Booking = () => {
               variants={fadeSlideLeft}
               className="neon-card rounded-2xl p-6"
             >
-              <h3 className="text-2xl font-bold text-primary">New Booking</h3>
+              <h3 className="text-2xl font-bold text-primary">New Booking Request</h3>
 
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="mb-2 block text-sm font-medium">Name</label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-background/55" />
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" required className="bg-background/55" />
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-medium">Email</label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="bg-background/55" />
+                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" inputMode="email" required className="bg-background/55" />
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-medium">Phone</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-foreground/55" />
-                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+44 ..." className="bg-background/55 pl-10" />
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} autoComplete="tel" inputMode="tel" placeholder="+44 ..." className="bg-background/55 pl-10" />
                   </div>
                 </div>
 
@@ -174,18 +143,18 @@ const Booking = () => {
                 </div>
 
                 <Button type="submit" disabled={loading} className="neon-btn-primary w-full font-semibold">
-                  <Camera className="mr-2 h-4 w-4" /> {loading ? "Booking..." : "Confirm Booking"}
+                  <Camera className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Confirm Booking"}
                 </Button>
               </div>
             </motion.form>
 
             <motion.section initial="hidden" animate="visible" variants={fadeSlideRight}>
-              <h3 className="mb-4 text-2xl font-bold text-primary">My Bookings</h3>
+              <h3 className="mb-4 text-2xl font-bold text-primary">Recent Requests</h3>
 
               {bookings.length === 0 ? (
                 <div className="neon-card rounded-2xl p-6 text-center">
                   <Clock className="mx-auto mb-3 h-9 w-9 text-foreground/55" />
-                  <p className="text-sm text-foreground/75">No bookings yet. Create your first booking.</p>
+                  <p className="text-sm text-foreground/75">No requests from this device yet. Submit your first booking request.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -197,7 +166,7 @@ const Booking = () => {
                         <p className="text-sm text-foreground/75">
                           {booking.preferredDate ? format(new Date(booking.preferredDate), "PPP") : "No date"}
                         </p>
-                        <p className="mt-1 text-xs text-foreground/68">Booked: {format(new Date(booking.createdAt), "PPP")}</p>
+                        <p className="mt-1 text-xs text-foreground/68">Requested: {format(new Date(booking.createdAt), "PPP")}</p>
                       </div>
                     </article>
                   ))}

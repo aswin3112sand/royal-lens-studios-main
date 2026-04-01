@@ -1,52 +1,28 @@
-import { AppError, getStoredAuthToken, setStoredAuthToken } from "@/lib/api";
+import { AppError } from "@/lib/api";
 import type {
-  AuthResponse,
-  AuthUser,
   Booking,
   Client,
   ContactMessagePayload,
   CreateBookingPayload,
-  CreateClientPayload,
-  CreateLeadPayload,
-  CreatePackagePayload,
-  CreateProjectPayload,
-  DashboardResponse,
   Lead,
-  LoginPayload,
   PackageItem,
-  Project,
-  RegisterPayload,
-  StudioSettings,
   Testimonial,
-  UpdateStudioSettingsPayload,
 } from "@/lib/services/types";
-
-interface InternalUser extends AuthUser {
-  password: string;
-}
 
 interface StoredContactMessage extends ContactMessagePayload {
   id: number;
   createdAt: string;
 }
 
-interface StoredBooking extends Booking {
-  userId: number;
-}
-
 const STORAGE_KEYS = {
-  users: "rls_users",
   bookings: "rls_bookings",
+  bookingHistory: "rls_booking_history",
   leads: "rls_leads",
   clients: "rls_clients",
-  projects: "rls_projects",
   packages: "rls_packages",
   testimonials: "rls_testimonials",
-  settings: "rls_settings",
   contactMessages: "rls_contact_messages",
 } as const;
-
-const TOKEN_PREFIX = "local-auth-";
 
 const delay = (ms = 120) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -56,34 +32,9 @@ const isoDaysAgo = (days: number) => {
   return date.toISOString();
 };
 
-const defaultUsers: InternalUser[] = [
+const defaultBookings: Booking[] = [
   {
     id: 1,
-    email: "admin@royallens.studio",
-    fullName: "Royal Lens Admin",
-    role: "ADMIN",
-    password: "admin123",
-  },
-  {
-    id: 2,
-    email: "staff@royallens.studio",
-    fullName: "Studio Staff",
-    role: "STAFF",
-    password: "staff123",
-  },
-  {
-    id: 3,
-    email: "client@example.com",
-    fullName: "Sample Client",
-    role: "USER",
-    password: "client123",
-  },
-];
-
-const defaultBookings: StoredBooking[] = [
-  {
-    id: 1,
-    userId: 3,
     name: "Sample Client",
     email: "client@example.com",
     phone: "+91 98765 43210",
@@ -121,23 +72,6 @@ const defaultClients: Client[] = [
     totalBookings: 1,
     createdAt: isoDaysAgo(8),
     updatedAt: isoDaysAgo(1),
-  },
-];
-
-const defaultProjects: Project[] = [
-  {
-    id: 1,
-    title: "Grand Wedding Story",
-    slug: "grand-wedding-story",
-    category: "wedding",
-    description: "Luxury wedding story captured in cinematic style.",
-    story: "Full-day wedding photography across ceremony and reception.",
-    location: "Chennai",
-    published: true,
-    featured: true,
-    shootDate: isoDaysAgo(30).slice(0, 10),
-    createdAt: isoDaysAgo(30),
-    updatedAt: isoDaysAgo(30),
   },
 ];
 
@@ -206,17 +140,8 @@ const defaultTestimonials: Testimonial[] = [
   },
 ];
 
-const defaultSettings: StudioSettings = {
-  id: 1,
-  studioName: "Royal Lens Studios",
-  whatsappNumber: "919876543210",
-  phone: "+44 20 7946 0958",
-  email: "hello@royallens.studio",
-  address: "123 Royal Avenue, London",
-  updatedAt: isoDaysAgo(0),
-};
-
 const defaultContactMessages: StoredContactMessage[] = [];
+const defaultBookingHistory: number[] = [];
 
 const readStorage = <T,>(key: string, fallback: T): T => {
   const raw = window.localStorage.getItem(key);
@@ -242,11 +167,11 @@ const ensureSeedData = () => {
     return;
   }
 
-  if (!window.localStorage.getItem(STORAGE_KEYS.users)) {
-    writeStorage(STORAGE_KEYS.users, defaultUsers);
-  }
   if (!window.localStorage.getItem(STORAGE_KEYS.bookings)) {
     writeStorage(STORAGE_KEYS.bookings, defaultBookings);
+  }
+  if (!window.localStorage.getItem(STORAGE_KEYS.bookingHistory)) {
+    writeStorage(STORAGE_KEYS.bookingHistory, defaultBookingHistory);
   }
   if (!window.localStorage.getItem(STORAGE_KEYS.leads)) {
     writeStorage(STORAGE_KEYS.leads, defaultLeads);
@@ -254,101 +179,38 @@ const ensureSeedData = () => {
   if (!window.localStorage.getItem(STORAGE_KEYS.clients)) {
     writeStorage(STORAGE_KEYS.clients, defaultClients);
   }
-  if (!window.localStorage.getItem(STORAGE_KEYS.projects)) {
-    writeStorage(STORAGE_KEYS.projects, defaultProjects);
-  }
   if (!window.localStorage.getItem(STORAGE_KEYS.packages)) {
     writeStorage(STORAGE_KEYS.packages, defaultPackages);
   }
   if (!window.localStorage.getItem(STORAGE_KEYS.testimonials)) {
     writeStorage(STORAGE_KEYS.testimonials, defaultTestimonials);
   }
-  if (!window.localStorage.getItem(STORAGE_KEYS.settings)) {
-    writeStorage(STORAGE_KEYS.settings, defaultSettings);
-  }
   if (!window.localStorage.getItem(STORAGE_KEYS.contactMessages)) {
     writeStorage(STORAGE_KEYS.contactMessages, defaultContactMessages);
   }
 };
 
-const getUsers = () => {
+const getBookings = () => {
   ensureSeedData();
-  return readStorage<InternalUser[]>(STORAGE_KEYS.users, clone(defaultUsers));
+  return readStorage<Booking[]>(STORAGE_KEYS.bookings, clone(defaultBookings));
 };
 
-const saveUsers = (users: InternalUser[]) => writeStorage(STORAGE_KEYS.users, users);
-const getBookings = () => readStorage<StoredBooking[]>(STORAGE_KEYS.bookings, clone(defaultBookings));
-const saveBookings = (bookings: StoredBooking[]) => writeStorage(STORAGE_KEYS.bookings, bookings);
+const saveBookings = (bookings: Booking[]) => writeStorage(STORAGE_KEYS.bookings, bookings);
+const getBookingHistory = () => readStorage<number[]>(STORAGE_KEYS.bookingHistory, clone(defaultBookingHistory));
+const saveBookingHistory = (history: number[]) => writeStorage(STORAGE_KEYS.bookingHistory, history);
 const getLeads = () => readStorage<Lead[]>(STORAGE_KEYS.leads, clone(defaultLeads));
 const saveLeads = (leads: Lead[]) => writeStorage(STORAGE_KEYS.leads, leads);
 const getClients = () => readStorage<Client[]>(STORAGE_KEYS.clients, clone(defaultClients));
 const saveClients = (clients: Client[]) => writeStorage(STORAGE_KEYS.clients, clients);
-const getProjects = () => readStorage<Project[]>(STORAGE_KEYS.projects, clone(defaultProjects));
-const saveProjects = (projects: Project[]) => writeStorage(STORAGE_KEYS.projects, projects);
 const getPackages = () => readStorage<PackageItem[]>(STORAGE_KEYS.packages, clone(defaultPackages));
-const savePackages = (packages: PackageItem[]) => writeStorage(STORAGE_KEYS.packages, packages);
 const getTestimonials = () => readStorage<Testimonial[]>(STORAGE_KEYS.testimonials, clone(defaultTestimonials));
-const getSettings = () => readStorage<StudioSettings>(STORAGE_KEYS.settings, clone(defaultSettings));
-const saveSettings = (settings: StudioSettings) => writeStorage(STORAGE_KEYS.settings, settings);
 const getContactMessages = () => readStorage<StoredContactMessage[]>(STORAGE_KEYS.contactMessages, clone(defaultContactMessages));
 const saveContactMessages = (messages: StoredContactMessage[]) => writeStorage(STORAGE_KEYS.contactMessages, messages);
 
-const nextId = (items: Array<{ id: number }>) =>
-  items.reduce((max, item) => Math.max(max, item.id), 0) + 1;
-
+const nextId = (items: Array<{ id: number }>) => items.reduce((max, item) => Math.max(max, item.id), 0) + 1;
 const nowIso = () => new Date().toISOString();
 
-const createToken = (userId: number) => `${TOKEN_PREFIX}${userId}`;
-
-const findUserByToken = () => {
-  const token = getStoredAuthToken();
-  if (!token || !token.startsWith(TOKEN_PREFIX)) {
-    return null;
-  }
-
-  const userId = Number(token.slice(TOKEN_PREFIX.length));
-  if (Number.isNaN(userId)) {
-    return null;
-  }
-
-  return getUsers().find((user) => user.id === userId) ?? null;
-};
-
-const requireAuthenticatedUser = () => {
-  const user = findUserByToken();
-  if (!user) {
-    throw new AppError("Please sign in to continue.");
-  }
-  return user;
-};
-
-const requireAdminOrStaffUser = () => {
-  const user = requireAuthenticatedUser();
-  if (user.role !== "ADMIN" && user.role !== "STAFF") {
-    throw new AppError("Admin or staff access is required.");
-  }
-  return user;
-};
-
-const toAuthResponse = (user: InternalUser): AuthResponse => ({
-  user: {
-    id: user.id,
-    email: user.email,
-    fullName: user.fullName,
-    role: user.role,
-  },
-  token: createToken(user.id),
-});
-
-const generateSlug = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-const sortByNewest = <T extends { createdAt: string }>(items: T[]) =>
-  [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+const sortByNewest = <T extends { createdAt: string }>(items: T[]) => [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
 const upsertLeadFromContact = (payload: ContactMessagePayload) => {
   const leads = getLeads();
@@ -378,7 +240,7 @@ const upsertLeadFromContact = (payload: ContactMessagePayload) => {
   saveLeads(leads);
 };
 
-const upsertLeadFromBooking = (booking: StoredBooking) => {
+const upsertLeadFromBooking = (booking: Booking) => {
   const leads = getLeads();
   const existing = leads.find((lead) => lead.email?.toLowerCase() === booking.email.toLowerCase());
   const updatedAt = nowIso();
@@ -407,7 +269,7 @@ const upsertLeadFromBooking = (booking: StoredBooking) => {
   saveLeads(leads);
 };
 
-const upsertClientFromBooking = (booking: StoredBooking) => {
+const upsertClientFromBooking = (booking: Booking) => {
   const clients = getClients();
   const updatedAt = nowIso();
   const existing = clients.find((client) => client.email?.toLowerCase() === booking.email.toLowerCase());
@@ -436,63 +298,6 @@ const upsertClientFromBooking = (booking: StoredBooking) => {
 };
 
 export const localStore = {
-  async register(payload: RegisterPayload) {
-    await delay();
-    const users = getUsers();
-    const email = payload.email.trim().toLowerCase();
-    if (users.some((user) => user.email.toLowerCase() === email)) {
-      throw new AppError("An account with this email already exists.");
-    }
-
-    const user: InternalUser = {
-      id: nextId(users),
-      email,
-      fullName: payload.fullName?.trim() || null,
-      role: "USER",
-      password: payload.password,
-    };
-
-    users.push(user);
-    saveUsers(users);
-    const response = toAuthResponse(user);
-    setStoredAuthToken(response.token);
-    return response;
-  },
-
-  async login(payload: LoginPayload) {
-    await delay();
-    const email = payload.email.trim().toLowerCase();
-    const user = getUsers().find((candidate) => candidate.email.toLowerCase() === email);
-    if (!user || user.password !== payload.password) {
-      throw new AppError("Invalid email or password.");
-    }
-
-    const response = toAuthResponse(user);
-    setStoredAuthToken(response.token);
-    return response;
-  },
-
-  async me() {
-    await delay(40);
-    const user = findUserByToken();
-    if (!user) {
-      setStoredAuthToken(null);
-      return null;
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-    } satisfies AuthUser;
-  },
-
-  async logout() {
-    await delay(40);
-    setStoredAuthToken(null);
-  },
-
   async getPublicPackages(limit?: number) {
     await delay(60);
     const items = getPackages()
@@ -523,20 +328,28 @@ export const localStore = {
 
   async getMyBookings() {
     await delay(80);
-    const user = requireAuthenticatedUser();
-    return sortByNewest(getBookings().filter((booking) => booking.userId === user.id));
+    const history = getBookingHistory();
+    if (history.length === 0) {
+      return [];
+    }
+
+    const visibleIds = new Set(history);
+    return sortByNewest(getBookings().filter((booking) => visibleIds.has(booking.id)));
   },
 
   async createBooking(payload: CreateBookingPayload) {
     await delay();
-    const user = requireAuthenticatedUser();
+
+    if (!payload.name.trim() || !payload.email.trim()) {
+      throw new AppError("Name and email are required.");
+    }
+
     const bookings = getBookings();
-    const booking: StoredBooking = {
+    const booking: Booking = {
       id: nextId(bookings),
-      userId: user.id,
-      name: payload.name,
-      email: payload.email,
-      phone: payload.phone ?? null,
+      name: payload.name.trim(),
+      email: payload.email.trim().toLowerCase(),
+      phone: payload.phone?.trim() || null,
       shootType: payload.shootType,
       preferredDate: payload.preferredDate,
       status: "pending",
@@ -546,206 +359,9 @@ export const localStore = {
 
     bookings.unshift(booking);
     saveBookings(bookings);
+    saveBookingHistory([booking.id, ...getBookingHistory().filter((id) => id !== booking.id)].slice(0, 8));
     upsertLeadFromBooking(booking);
     upsertClientFromBooking(booking);
     return booking;
-  },
-
-  async getDashboard(): Promise<DashboardResponse> {
-    await delay(100);
-    requireAdminOrStaffUser();
-    const bookings = sortByNewest(getBookings());
-    const leads = sortByNewest(getLeads());
-    const clients = getClients();
-    const today = new Date().toISOString().slice(0, 10);
-
-    return {
-      stats: {
-        bookings: bookings.length,
-        leads: leads.length,
-        clients: clients.length,
-        todayBookings: bookings.filter((booking) => booking.preferredDate === today).length,
-      },
-      recentBookings: bookings.slice(0, 5),
-      recentLeads: leads.slice(0, 5),
-    };
-  },
-
-  async getBookings() {
-    await delay(60);
-    requireAdminOrStaffUser();
-    return sortByNewest(getBookings());
-  },
-
-  async updateBookingStatus(id: number, status: string) {
-    await delay();
-    requireAdminOrStaffUser();
-    const bookings = getBookings();
-    const booking = bookings.find((item) => item.id === id);
-    if (!booking) {
-      throw new AppError("Booking not found.");
-    }
-    booking.status = status;
-    booking.updatedAt = nowIso();
-    saveBookings(bookings);
-    return booking;
-  },
-
-  async getLeads() {
-    await delay(60);
-    requireAdminOrStaffUser();
-    return sortByNewest(getLeads());
-  },
-
-  async createLead(payload: CreateLeadPayload) {
-    await delay();
-    requireAdminOrStaffUser();
-    const leads = getLeads();
-    const lead: Lead = {
-      id: nextId(leads),
-      name: payload.name,
-      email: payload.email ?? null,
-      phone: payload.phone ?? null,
-      source: payload.source ?? "manual",
-      status: "new",
-      notes: payload.notes ?? null,
-      nextFollowup: null,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    leads.unshift(lead);
-    saveLeads(leads);
-    return lead;
-  },
-
-  async updateLeadStatus(id: number, status: string) {
-    await delay();
-    requireAdminOrStaffUser();
-    const leads = getLeads();
-    const lead = leads.find((item) => item.id === id);
-    if (!lead) {
-      throw new AppError("Lead not found.");
-    }
-    lead.status = status;
-    lead.updatedAt = nowIso();
-    saveLeads(leads);
-    return lead;
-  },
-
-  async getClients() {
-    await delay(60);
-    requireAdminOrStaffUser();
-    return sortByNewest(getClients());
-  },
-
-  async createClient(payload: CreateClientPayload) {
-    await delay();
-    requireAdminOrStaffUser();
-    const clients = getClients();
-    const client: Client = {
-      id: nextId(clients),
-      name: payload.name,
-      email: payload.email ?? null,
-      phone: payload.phone ?? null,
-      notes: payload.notes ?? null,
-      tags: [],
-      totalBookings: 0,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    clients.unshift(client);
-    saveClients(clients);
-    return client;
-  },
-
-  async getProjects() {
-    await delay(60);
-    requireAdminOrStaffUser();
-    return sortByNewest(getProjects());
-  },
-
-  async createProject(payload: CreateProjectPayload) {
-    await delay();
-    requireAdminOrStaffUser();
-    const projects = getProjects();
-    const title = payload.title.trim();
-    const project: Project = {
-      id: nextId(projects),
-      title,
-      slug: payload.slug?.trim() ? generateSlug(payload.slug) : generateSlug(title),
-      category: payload.category,
-      description: payload.description ?? null,
-      story: payload.story ?? null,
-      location: payload.location ?? null,
-      published: false,
-      featured: false,
-      shootDate: null,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    projects.unshift(project);
-    saveProjects(projects);
-    return project;
-  },
-
-  async deleteProject(id: number) {
-    await delay();
-    requireAdminOrStaffUser();
-    const projects = getProjects();
-    saveProjects(projects.filter((project) => project.id !== id));
-  },
-
-  async getPackages() {
-    await delay(60);
-    requireAdminOrStaffUser();
-    return [...getPackages()].sort((a, b) => a.sortOrder - b.sortOrder);
-  },
-
-  async createPackage(payload: CreatePackagePayload) {
-    await delay();
-    requireAdminOrStaffUser();
-    const packages = getPackages();
-    const nextSortOrder = packages.reduce((max, item) => Math.max(max, item.sortOrder), 0) + 1;
-    const item: PackageItem = {
-      id: nextId(packages),
-      name: payload.name,
-      tier: payload.tier,
-      price: payload.price,
-      description: payload.description ?? null,
-      deliverables: [],
-      isPopular: Boolean(payload.isPopular),
-      active: true,
-      sortOrder: nextSortOrder,
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
-    };
-    packages.push(item);
-    savePackages(packages);
-    return item;
-  },
-
-  async deletePackage(id: number) {
-    await delay();
-    requireAdminOrStaffUser();
-    const packages = getPackages();
-    savePackages(packages.filter((item) => item.id !== id));
-  },
-
-  async getSettings() {
-    await delay(50);
-    requireAdminOrStaffUser();
-    return getSettings();
-  },
-
-  async updateSettings(payload: UpdateStudioSettingsPayload) {
-    await delay();
-    requireAdminOrStaffUser();
-    const settings = {
-      ...getSettings(),
-      ...payload,
-      updatedAt: nowIso(),
-    };
-    saveSettings(settings);
-    return settings;
   },
 };
